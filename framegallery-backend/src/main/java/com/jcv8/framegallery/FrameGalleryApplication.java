@@ -1,13 +1,13 @@
-package com.jcv8.framegalery;
+package main.java.com.jcv8.framegallery;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class FrameGaleryApplication {
+public class FrameGalleryApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(FrameGaleryApplication.class, args);
+        SpringApplication.run(FrameGalleryApplication.class, args);
     }
 
 }
