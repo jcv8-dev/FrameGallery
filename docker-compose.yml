@@ -6,3 +6,5 @@ services:
     container_name: fg
     ports:
       - "8081:80"
+    environment:
+      - SERVER_NAME=your-domain.com
