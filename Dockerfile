@@ -1,21 +1,22 @@
 # Stage 1: Build the React application
-FROM node:14 AS build-frontend
+FROM node:16 AS build-frontend
 
 WORKDIR /frontend
-COPY frontend/package.json frontend/yarn.lock ./
+COPY frontend/package.json frontend/package-lock.json ./
 RUN yarn install
 COPY frontend/ ./
 RUN yarn build
 
 # Stage 2: Build the Spring Boot application
-FROM gradle:7.5.0-jdk11 AS build-backend
+FROM eclipse-temurin:20-jdk AS build-backend
 
 WORKDIR /backend
 COPY backend/ .
-RUN gradle build -x test
+RUN chmod +x gradlew
+RUN ./gradlew build -x test
 
 # Stage 3: Combine both applications and set up Nginx and Spring Boot
-FROM openjdk:11-jre-slim
+FROM eclipse-temurin:20-jre
 
 # Install Nginx and Supervisor
 RUN apt-get update && apt-get install -y nginx supervisor && apt-get clean

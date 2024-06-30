@@ -1,0 +1,8 @@
+version: "2"
+
+services:
+  framegallery:
+    image: framegallery:latest
+    container_name: fg
+    ports:
+      - "8081:80"
