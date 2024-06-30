@@ -11,7 +11,7 @@ const ImageEditor = (props) => {
     const [newImageStatus, setNewImageStatus] = useState({});
 
     const loadCurrentImageStatus = () => {
-        axios.get(`api/rest/v1/image/${props.id.split(".")[0]}`, {headers: authHeader})
+        axios.get(`/api/rest/v1/image/${props.id.split(".")[0]}`, {headers: authHeader})
             .then(res => {
                 setImageStatus(res.data)
                 setNewImageStatus(res.data)
