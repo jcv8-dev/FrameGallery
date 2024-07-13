@@ -3,9 +3,9 @@ FROM node:16 AS build-frontend
 
 WORKDIR /frontend
 COPY frontend/package.json frontend/package-lock.json ./
-RUN yarn install
+RUN npm install
 COPY frontend/ ./
-RUN yarn build
+RUN npm run build
 
 # Stage 2: Build the Spring Boot application
 FROM eclipse-temurin:20-jdk AS build-backend
