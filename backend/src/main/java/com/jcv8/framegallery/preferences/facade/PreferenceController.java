@@ -50,5 +50,5 @@ public class PreferenceController {
         return response;
     }
 
-    
+
 }

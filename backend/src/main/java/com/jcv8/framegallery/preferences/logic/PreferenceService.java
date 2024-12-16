@@ -5,6 +5,7 @@ import com.jcv8.framegallery.preferences.dataaccess.repository.PreferenceReposit
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -13,11 +14,13 @@ public class PreferenceService {
     @Autowired
     private PreferenceRepository preferenceRepository;
 
-    private Map<String, String> defaultPreferences = Map.of(
-            "language", "en_EN",
-            "theme", "dark",
-            "favicon-size", "32"
-
+    private final HashMap<String, String> defaultPreferences = new HashMap<>(
+        Map.of(
+        "theme", "light",
+        "language", "en",
+        "font-size", "16",
+        "favicon-size", "32"
+        )
     );
 
     public Map<String, String> getAllPreferences(){
@@ -30,7 +33,7 @@ public class PreferenceService {
 
     public void addPreference(String key, String value){
         Preferences preferencesEntity = preferenceRepository.findAll().get(0);
-        Map<String, String> preferences = preferencesEntity.getPreferences();
+        HashMap<String, String> preferences = preferencesEntity.getPreferences();
         preferences.put(key, value);
         preferencesEntity.setPreferences(preferences);
         preferenceRepository.save(preferencesEntity);
@@ -38,13 +41,13 @@ public class PreferenceService {
 
     public void deletePreference(String key){
         Preferences preferencesEntity = preferenceRepository.findAll().get(0);
-        Map<String, String> preferences = preferencesEntity.getPreferences();
+        HashMap<String, String> preferences = preferencesEntity.getPreferences();
         preferences.remove(key);
         preferencesEntity.setPreferences(preferences);
         preferenceRepository.save(preferencesEntity);
     }
 
-    public void overwritePreferences(Map<String, String> preferences){
+    public void overwritePreferences(HashMap<String, String> preferences){
         Preferences preferencesEntity = preferenceRepository.findAll().get(0);
         preferencesEntity.setPreferences(preferences);
         preferenceRepository.save(preferencesEntity);
@@ -56,9 +59,7 @@ public class PreferenceService {
         preferenceRepository.save(preferencesEntity);
     }
 
-    public void mergePreferences(Map<String, String> subset, Map<String, String> preferences){
-        subset.forEach((key, value) -> {
-            preferences.put(key, value);
-        });
+    public void mergePreferences(HashMap<String, String> subset, Map<String, String> preferences){
+        preferences.putAll(subset);
     }
 }

@@ -1,13 +1,9 @@
 package com.jcv8.framegallery.preferences.dataaccess.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.Type;
 
-import java.util.Map;
+import java.util.HashMap;
 
 @Entity
 @Data
@@ -17,8 +13,7 @@ public class Preferences {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-
-    @Type(type = "json")
-    private Map<String, String> preferences;
+    @ElementCollection
+    private HashMap<String, String> preferences;
 
 }
