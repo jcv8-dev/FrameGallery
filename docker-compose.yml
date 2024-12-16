@@ -7,7 +7,7 @@ services:
     ports:
       - "8081:80"
     environment:
-      - SERVER_NAME=your-domain.com
+      - CORS_ALLOWED_ORIGIN=https://your-domain.tld
       - BACKEND_MAX_FILE_SIZE=50MB
       - NGINX_MAX_FILE_SIZE=50m
     volumes:
