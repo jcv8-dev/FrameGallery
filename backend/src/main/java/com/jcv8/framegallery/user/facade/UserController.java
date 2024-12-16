@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/rest/v1/artist")
 public class UserController {
