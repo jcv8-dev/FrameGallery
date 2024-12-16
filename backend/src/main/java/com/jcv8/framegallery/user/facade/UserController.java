@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/api/rest/v1/artist")
+@CrossOrigin(origins = "${cors.allowed.origin}")
 public class UserController {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(UserController.class);
     private final Logger logger = Logger.getLogger(this.getClass().getName());
