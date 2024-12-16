@@ -8,3 +8,12 @@ services:
       - "8081:80"
     environment:
       - SERVER_NAME=your-domain.com
+      - BACKEND_MAX_FILE_SIZE=50MB
+      - NGINX_MAX_FILE_SIZE=50m
+    volumes:
+      - fg-images:/upload-dir
+      - fg-db:/fg-db
+
+volumes:
+ fg-images:
+ fg-db:
