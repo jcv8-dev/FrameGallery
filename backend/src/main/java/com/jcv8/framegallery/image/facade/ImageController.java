@@ -30,7 +30,6 @@ import java.util.logging.Logger;
 
 @Controller
 @RequestMapping(path = "/api/rest/v1/image")
-@CrossOrigin(origins = "*")
 public class ImageController {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(ImageController.class);
