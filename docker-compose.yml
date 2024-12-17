@@ -5,9 +5,9 @@ services:
     image: framegallery:latest
     container_name: fg
     ports:
-      - "8081:80"
+      - "8080:80" #change if needed
     environment:
-      - CORS_ALLOWED_ORIGIN=https://your-domain.tld
+      - CORS_ALLOWED_ORIGIN=http://localhost:8080 #replace with your domain
       - BACKEND_MAX_FILE_SIZE=50MB
       - NGINX_MAX_FILE_SIZE=50m
     volumes:
