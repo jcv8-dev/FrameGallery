@@ -3,13 +3,16 @@ version: "2"
 services:
   framegallery:
     image: framegallery:latest
+    build: .
     container_name: fg
     ports:
+
       - "8080:80" #change if needed
     environment:
       - CORS_ALLOWED_ORIGIN=http://localhost:8080 #replace with your domain
       - BACKEND_MAX_FILE_SIZE=50MB
       - NGINX_MAX_FILE_SIZE=50m
+      - JWT_SECRET=kVDzP6f26Hlj73T^aiQ5vKP!NR!JjTkpo^VSTUdSszaXFUL8@z #replace with your own
     volumes:
       - fg-images:/upload-dir
       - fg-db:/fg-db

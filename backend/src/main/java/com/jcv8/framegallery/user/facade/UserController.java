@@ -1,6 +1,6 @@
 package com.jcv8.framegallery.user.facade;
 
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,14 +14,13 @@ import com.jcv8.framegallery.user.dataaccess.entity.UserInfo;
 import com.jcv8.framegallery.user.logic.UserInfoService;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
+
+@Slf4j
 
 @RestController
 @RequestMapping("/api/rest/v1/artist")
 @CrossOrigin(origins = "${cors.allowed.origin}")
 public class UserController {
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(UserController.class);
-    private final Logger logger = Logger.getLogger(this.getClass().getName());
 
     @Autowired
     private UserInfoService service;
@@ -37,7 +36,7 @@ public class UserController {
 
     @PostMapping("/auth/register")
     public ResponseEntity<?> addNewUser(@RequestBody UserInfo userInfo) {
-        logger.info("Request to register new User " + userInfo);
+        log.info("Request to register new User " + userInfo);
         try{
             UserInfo newUser = service.addUser(userInfo);
             return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
@@ -48,17 +47,17 @@ public class UserController {
 
     @PostMapping("/auth/login")
     public ResponseEntity<?> authenticateAndGetToken(@RequestBody AuthRequestDto authRequest) {
-        logger.info("Login request from " + authRequest.getUsername());
+        log.info("Login request from " + authRequest.getUsername());
         try{
             Authentication authentication = new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword());
             authenticationManager.authenticate(authentication);
             String jwt = jwtService.generateToken(authRequest.getUsername());
             Map<String, Object> responseMap = new HashMap<>();
             responseMap.put("token", jwt);
-            logger.info("Authentication Success");
+            log.info("Authentication Success");
             return ResponseEntity.status(HttpStatus.OK).body(responseMap);
         } catch (Exception e) {
-            logger.info("Authentication Failed");
+            log.info("Authentication Failed: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
