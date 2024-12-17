@@ -19,6 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/rest/v1/artist")
+@CrossOrigin(origins = "${cors.allowed.origin}")
 public class UserController {
 
     @Autowired
