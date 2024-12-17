@@ -7,6 +7,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -18,14 +19,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+@Slf4j
+
 @Component
 public class JwtService {
 
     @PostConstruct
     public void init() {
-        byte[] keyBytes = new byte[32];
-        new java.security.SecureRandom().nextBytes(keyBytes);
+        byte[] keyBytes = System.getenv("JWT_SECRET").getBytes();
         SECRET = Base64.getEncoder().encodeToString(keyBytes);
+        if (SECRET == null || SECRET.length() < 32) {
+            log.error("JWT_SECRET is not set or too short");
+            throw new IllegalStateException("JWT_SECRET is not set or too short");
+        }
     }
 
     public static String SECRET;
