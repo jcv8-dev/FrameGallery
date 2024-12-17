@@ -12,6 +12,7 @@ FROM eclipse-temurin:20-jdk AS build-backend
 
 WORKDIR /backend
 COPY backend/ .
+RUN apt update && apt install dos2unix && dos2unix gradlew
 RUN chmod +x gradlew
 RUN ./gradlew build -x test
 
