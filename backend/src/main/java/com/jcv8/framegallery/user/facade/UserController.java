@@ -1,5 +1,9 @@
 package com.jcv8.framegallery.user.facade;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,6 +23,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/rest/v1/artist")
+@Tag(name = "User", description = "User related operations")
 @CrossOrigin(origins = "${cors.allowed.origin}")
 public class UserController {
 
@@ -35,6 +40,13 @@ public class UserController {
     private UserInfoService userInfoService;
 
     @PostMapping("/auth/register")
+    @Operation(summary = "Register a new user")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "201", description = "User registered successfully"),
+                    @ApiResponse(responseCode = "401", description = "User already exists")
+            }
+    )
     public ResponseEntity<?> addNewUser(@RequestBody UserInfo userInfo) {
         log.info("Request to register new User " + userInfo);
         try{
@@ -46,6 +58,13 @@ public class UserController {
     }
 
     @PostMapping("/auth/login")
+    @Operation(summary = "Authenticate and get a token")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Authentication successful"),
+                    @ApiResponse(responseCode = "401", description = "Authentication failed")
+            }
+    )
     public ResponseEntity<?> authenticateAndGetToken(@RequestBody AuthRequestDto authRequest) {
         log.info("Login request from " + authRequest.getUsername());
         try{
@@ -67,6 +86,13 @@ public class UserController {
      * @return true, if there is no registered user
      */
     @GetMapping("/auth/onboarding")
+    @Operation(summary = "Check if onboarding is necessary")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Onboarding necessary"),
+                    @ApiResponse(responseCode = "403", description = "Onboarding not necessary")
+            }
+    )
     public ResponseEntity<?> onboarding() {
         if(userInfoService.hasOnboarded()){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("");
@@ -76,6 +102,13 @@ public class UserController {
     }
 
     @GetMapping("/info")
+    @Operation(summary = "Get the artist information")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Artist information retrieved"),
+                    @ApiResponse(responseCode = "404", description = "Artist information not found")
+            }
+    )
     public ResponseEntity<?> artistInfo(){
         try{
             return ResponseEntity.status(HttpStatus.OK).body(userInfoService.getArtistInfo());

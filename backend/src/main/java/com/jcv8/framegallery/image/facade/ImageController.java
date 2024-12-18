@@ -7,6 +7,10 @@ import com.jcv8.framegallery.image.dataaccess.entity.Image;
 import com.jcv8.framegallery.image.logic.ImageDownloadService;
 import com.jcv8.framegallery.image.logic.ImageInfoService;
 import com.jcv8.framegallery.image.logic.ImageUploadService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +34,7 @@ import java.util.logging.Logger;
 
 @Controller
 @RequestMapping(path = "/api/rest/v1/image")
+@Tag(name = "Image", description = "Endpoints for image management")
 @CrossOrigin(origins = "${cors.allowed.origin}")
 public class ImageController {
 
@@ -58,6 +63,12 @@ public class ImageController {
      * @return a list of Strings representing filenames
      */
     @GetMapping(value = "/all")
+    @Operation(summary = "Get all image filenames")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "All image filenames retrieved")
+            }
+    )
     public ResponseEntity<?> getAllImageFilename( @RequestHeader(name="Authorization", required = false) String token, @RequestParam(required = false) Boolean showAll) {
         if(token != null){
             String username = jwtService.extractUsername(token.split(" ")[1]);
@@ -72,6 +83,14 @@ public class ImageController {
     }
 
     @PutMapping(value = "/add")
+    @Operation(summary = "Add an image")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Image added successfully"),
+                    @ApiResponse(responseCode = "400", description = "Invalid Path"),
+                    @ApiResponse(responseCode = "400", description = "Empty file")
+            }
+    )
     public ResponseEntity<?> addImage(@RequestParam("image") MultipartFile image) {
         try{
             Image savedImage = imageUploadService.saveImage(image);
@@ -92,6 +111,13 @@ public class ImageController {
      * @return the information from the database
      */
     @GetMapping(value = "/{id:[0-9a-zA-Z-]{36}}")
+    @Operation(summary = "Get image info by id")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Image info retrieved"),
+                    @ApiResponse(responseCode = "404", description = "Image not found")
+            }
+    )
     public ResponseEntity<?> getImageInfoById(@PathVariable("id") UUID id) {
         try{
             Image image = imageInfoService.getImageInfoById(id);
@@ -104,6 +130,13 @@ public class ImageController {
     }
 
     @PutMapping(value = "/{id:[0-9a-zA-Z-]{36}}/")
+    @Operation(summary = "Set image info by id")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Image info updated"),
+                    @ApiResponse(responseCode = "404", description = "Image not found")
+            }
+    )
     public ResponseEntity<?> setImageInfo(@PathVariable("id") UUID id, @RequestBody ImageInfoRequestDto info) {
         try{
             imageInfoService.setImageInfo(id, info);
@@ -116,6 +149,13 @@ public class ImageController {
     }
 
     @GetMapping(value = "/{filename:[0-9a-zA-Z-]{36}\\.[a-zA-Z]{3,4}}")
+    @Operation(summary = "Get image by filename")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Image retrieved"),
+                    @ApiResponse(responseCode = "404", description = "Image not found")
+            }
+    )
     public ResponseEntity<?> getImageById(@PathVariable("filename") String filename, HttpServletRequest request) {
         try{
             Resource image = imageDownloadService.getImageFileByFilename(filename);
@@ -145,6 +185,13 @@ public class ImageController {
     }
 
     @DeleteMapping(value = "/{id}")
+    @Operation(summary = "Delete image by id")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Image deleted"),
+                    @ApiResponse(responseCode = "404", description = "Image not found")
+            }
+    )
     public ResponseEntity<?> deleteImageById(@PathVariable("id") UUID id) {
         try{
             imageDownloadService.deleteImageById(id);
@@ -157,18 +204,37 @@ public class ImageController {
     }
 
     @GetMapping(value = "/orphans")
+    @Operation(summary = "Get orphan images")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Orphan images retrieved")
+            }
+    )
     public ResponseEntity<?> getOrphanImages() {
         List<String> fileNames = imageInfoService.getOrphans().stream().map(path -> path.getFileName().toString()).toList();
         return ResponseEntity.status(HttpStatus.OK).body(fileNames);
     }
 
     @PostMapping(value = "/orphans/index")
+    @Operation(summary = "Reindex orphan images")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Orphan images reindexed")
+            }
+    )
     public ResponseEntity<?> reIndexOrphans() {
         imageInfoService.indexOrphans();
         return ResponseEntity.status(HttpStatus.OK).body(imageInfoService.getOrphans());
     }
 
     @DeleteMapping(value = "/orphans")
+    @Operation(summary = "Delete orphan images")
+    @ApiResponses(
+            value = {
+                    @ApiResponse(responseCode = "200", description = "Orphan images deleted"),
+                    @ApiResponse(responseCode = "500", description = "Could not delete all orphans")
+            }
+    )
     public ResponseEntity<?> deleteOrphanImages() {
         try{
             List<String> fileNames = imageInfoService.getOrphans().stream().map(path -> path.getFileName().toString()).toList();
