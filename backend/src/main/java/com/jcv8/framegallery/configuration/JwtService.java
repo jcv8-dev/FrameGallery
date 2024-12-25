@@ -26,13 +26,16 @@ public class JwtService {
 
     @PostConstruct
     public void init() {
-        byte[] keyBytes = System.getenv("JWT_SECRET").getBytes();
+        byte[] keyBytes = JWT_SECRET.getBytes();
         SECRET = Base64.getEncoder().encodeToString(keyBytes);
         if (SECRET == null || SECRET.length() < 32) {
             log.error("JWT_SECRET is not set or too short");
             throw new IllegalStateException("JWT_SECRET is not set or too short");
         }
     }
+
+    @Value("${jwt.secret}")
+    private String JWT_SECRET;
 
     public static String SECRET;
 
