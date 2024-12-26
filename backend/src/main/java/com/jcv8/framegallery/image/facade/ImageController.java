@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -31,16 +32,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+@Slf4j
 @Controller
 @RequestMapping(path = "/api/rest/v1/image")
 @Tag(name = "Image", description = "Endpoints for image management")
 @CrossOrigin(origins = "${cors.allowed.origin}")
 public class ImageController {
-
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(ImageController.class);
-    Logger logger = Logger.getLogger(this.getClass().getName());
-
+    
     @Autowired
     private ImageUploadService imageUploadService;
 
@@ -73,12 +71,12 @@ public class ImageController {
         if(token != null){
             String username = jwtService.extractUsername(token.split(" ")[1]);
             if(showAll != null && showAll && userDetailsService.loadUserByUsername(username) != null){
-                logger.info("Retrieving all image paths");
+                log.info("Retrieving all image paths");
                 return ResponseEntity.status(HttpStatus.OK).body(imageInfoService.getAllImageFilename());
             }
         }
 
-        logger.info("Retrieving all published paths");
+        log.info("Retrieving all published paths");
         return ResponseEntity.status(HttpStatus.OK).body(imageInfoService.getAllPublishedImageFilename());
     }
 
@@ -94,13 +92,13 @@ public class ImageController {
     public ResponseEntity<?> addImage(@RequestParam("image") MultipartFile image) {
         try{
             Image savedImage = imageUploadService.saveImage(image);
-            logger.log(Level.INFO, "Adding image " + image.getOriginalFilename() + " as " + savedImage.getPath());
+            log.info("Adding image " + image.getOriginalFilename() + " as " + savedImage.getPath());
             return ResponseEntity.status(HttpStatus.OK).body(savedImage);
         } catch (InvalidPathException e ){
-            logger.log(Level.WARNING, "Add Image Request with invalid Path");
+            log.warn("Add Image Request with invalid Path");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (NullPointerException e) {
-            logger.log(Level.WARNING, "Add Image Request with empty file");
+            log.warn("Add Image Request with empty file");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
@@ -121,10 +119,10 @@ public class ImageController {
     public ResponseEntity<?> getImageInfoById(@PathVariable("id") UUID id) {
         try{
             Image image = imageInfoService.getImageInfoById(id);
-            logger.log(Level.INFO, "Retrieving image info for " + id);
+            log.info("Retrieving image info for " + id);
             return ResponseEntity.status(HttpStatus.OK).body(new ImageInfoResponseDto(image));
         } catch (NoSuchFileException e) {
-            logger.log(Level.WARNING, "Request for non-existing image with id " + id);
+            log.warn("Request for non-existing image with id " + id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
@@ -140,10 +138,10 @@ public class ImageController {
     public ResponseEntity<?> setImageInfo(@PathVariable("id") UUID id, @RequestBody ImageInfoRequestDto info) {
         try{
             imageInfoService.setImageInfo(id, info);
-            logger.log(Level.INFO, "Updating image with UUID" + id);
+            log.info("Updating image with UUID" + id);
             return ResponseEntity.status(HttpStatus.OK).body("");
         } catch (FileNotFoundException e) {
-            logger.log(Level.WARNING, "Request for non-existing image with id " + id);
+            log.warn("Request for non-existing image with id " + id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
@@ -165,7 +163,7 @@ public class ImageController {
             try {
                 contentType = request.getServletContext().getMimeType(image.getFile().getAbsolutePath());
             } catch (IOException ex) {
-                logger.info("Could not determine file type.");
+                log.error("Could not determine file type.");
             }
 
             // Fallback to the default content type if type could not be determined
@@ -173,13 +171,13 @@ public class ImageController {
                 contentType = "application/octet-stream";
             }
 
-            logger.info("Request for " + filename);
+            log.info("Request for " + filename);
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
                     .body(image);
 
         } catch (NoSuchFileException e) {
-            logger.log(Level.WARNING, "Request for non-existing image " + filename);
+            log.warn("Request for non-existing image " + filename);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
@@ -195,10 +193,10 @@ public class ImageController {
     public ResponseEntity<?> deleteImageById(@PathVariable("id") UUID id) {
         try{
             imageDownloadService.deleteImageById(id);
-            logger.log(Level.INFO, "Deleting image with id " + id);
+            log.info("Deleting image with id " + id);
             return ResponseEntity.status(HttpStatus.OK).body("Deleted image " + id);
         } catch (IOException e) {
-            logger.log(Level.WARNING, "Delete request for non-existing image with id " + id);
+            log.warn("Delete request for non-existing image with id " + id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
@@ -241,7 +239,7 @@ public class ImageController {
             imageInfoService.deleteOrphans();
             return ResponseEntity.status(HttpStatus.OK).body(fileNames);
         } catch (IOException e) {
-            logger.log(Level.WARNING, "Delete request for non-existing orphan images");
+            log.warn("Delete request for non-existing orphan images");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Could not delete all orphans");
         }
     }

@@ -94,6 +94,7 @@ public class UserController {
             }
     )
     public ResponseEntity<?> onboarding() {
+        log.info("Running Onboarding check");
         if(userInfoService.hasOnboarded()){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("");
         } else {
@@ -110,6 +111,7 @@ public class UserController {
             }
     )
     public ResponseEntity<?> artistInfo(){
+        log.info("Processing info request");
         try{
             return ResponseEntity.status(HttpStatus.OK).body(userInfoService.getArtistInfo());
         } catch (IllegalAccessException e) {

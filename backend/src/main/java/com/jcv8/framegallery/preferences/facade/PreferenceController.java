@@ -2,6 +2,7 @@ package com.jcv8.framegallery.preferences.facade;
 
 import com.jcv8.framegallery.preferences.logic.PreferenceService;
 import com.jcv8.framegallery.user.facade.UserController;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -9,13 +10,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.logging.Logger;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/rest/v1/preferences")
 public class PreferenceController {
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(UserController.class);
-    private final Logger logger = Logger.getLogger(this.getClass().getName());
 
     @Autowired
     private PreferenceService preferenceService;
@@ -31,6 +30,7 @@ public class PreferenceController {
 
     @GetMapping("/{key}")
     public ResponseEntity<String> getPreferenceByKey(@PathVariable String key) {
+        log.info("Request to get preference by key " + key);
         String preference = preferenceService.getPreferenceByKey(key);
         if (preference.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -39,8 +39,10 @@ public class PreferenceController {
     }
 
     @PostMapping("/{key}")
-    public ResponseEntity<HttpStatus> addPreference(@RequestParam String key, @RequestParam String value) {
-        ResponseEntity response;
+    public ResponseEntity<HttpStatus> addPreference(@PathVariable String key, @RequestParam String value) {
+        ResponseEntity<HttpStatus> response;
+        log.info("Request to add preference with key " + key + " and value " + value);
+        // todo responses can be confusing as we add after a 2xx code is sent
         if(preferenceService.getPreferenceByKey(key) != null){
             response = new ResponseEntity<>(HttpStatus.OK);
         } else {
