@@ -1,7 +1,7 @@
 import { Button, Col, Form, Row} from "react-bootstrap";
 import axios from "axios";
 import React, {useState} from "react";
-import CustomAlert from "../CustomAlert";
+import CustomAlert from "../alerts/CustomAlert";
 import useSignIn from "react-auth-kit/hooks/useSignIn";
 
 const LoginForm = () => {
@@ -46,6 +46,10 @@ const LoginForm = () => {
     }
 
 
+    function handleHome() {
+        window.location = "/"
+    }
+
     return (
         <>
             <Row>
@@ -57,8 +61,11 @@ const LoginForm = () => {
                         <Form.Group className={"mb-3"} controlId={"loginPassword"}>
                             <Form.Control name={"password"} type={"password"} placeholder={"Password"} onChange={handleChange}></Form.Control>
                         </Form.Group>
-                        <Button variant="primary" type="button" className={"w-100"} onClick={handleSubmit} >
+                        <Button variant="primary" type="button" className={"w-100 mb-3"} onClick={handleSubmit} >
                             Login
+                        </Button>
+                        <Button variant="outline-primary" type="button" className={"w-100"} onClick={handleHome} >
+                            Home
                         </Button>
                     </Form>
                     <CustomAlert variant={"warning"}>{state.error !== undefined ? state.error.toString() : ""}</CustomAlert>

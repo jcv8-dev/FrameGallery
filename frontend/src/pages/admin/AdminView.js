@@ -70,6 +70,10 @@ const AdminView = () => {
             .catch()
     }
 
+    function preferences() {
+        window.location = '/admin/preferences'
+    }
+
     return(
         <>
             <LogoBanner />
@@ -84,7 +88,13 @@ const AdminView = () => {
                         </Form>
                     </GenericModal>
                 </Col>
-
+                <Col className={"mx-auto"}>
+                    <Button className={"w-100"} onClick={preferences}>Preferences</Button>
+                </Col>
+                <Col></Col>
+            </Row>
+            <Row>
+                <Col></Col>
                 <Col className={"mx-auto"}>
                     <Button className={"w-100"} onClick={logout}>Logout</Button>
                 </Col>
@@ -100,7 +110,7 @@ const AdminView = () => {
             </Row>
             <Row className={"pb-3"}>
                 <Col xs={4} className={"mx-auto "}>
-                    <Button className={"w-100"} onClick={triggerReIndex}>Index Orphans</Button>
+                    <Button className={"w-100"} onClick={triggerReIndex}>Index Files</Button>
                 </Col>
             </Row>
 
