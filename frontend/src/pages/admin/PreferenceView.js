@@ -1,7 +1,12 @@
 import LogoBanner from "../../components/static/LogoBanner";
 import {Button, Col, Container, Form, InputGroup, Row} from "react-bootstrap";
 import TimedAlert from "../../components/alerts/TimedAlert";
-import {useState} from "react";
+import {useEffect, useState} from "react";
+import axios from "axios";
+import SwitchFormEntry from "../../components/forms/preferences/SwitchFormEntry";
+import TextAreaFormEntry from "../../components/forms/preferences/TextAreaFormEntry";
+import TextFormEntry from "../../components/forms/preferences/TextFormEntry";
+import {map} from "react-bootstrap/ElementChildren";
 
 const PreferenceView = () => {
     const toggleTheme = () => {
@@ -14,71 +19,52 @@ const PreferenceView = () => {
         return document.documentElement.getAttribute("data-bs-theme")
     }
 
-    const [showAlert, setShowAlert] = useState(false);
-
     const [alerts, setAlerts] = useState([])
+
+    const [preferences, setPreferences] = useState([])
 
     const handleSave = () => {
         setAlerts([...alerts, { id: Date.now(), variant: "danger", heading: "Ooops not implemented!", content: "If this bothers you, send patches" }]);
     };
+
+    const fetchCurrentValues = () => {
+        axios.get("/api/rest/v1/preferences/fetch").then(async res => {
+            if(res.status === 200){
+                setAlerts([...alerts, {id: Date.now(), variant: "success", heading: "Successfully fetched preferences"}])
+                //sort preferences by key alphabetically
+                let sortedPreferences = {   }
+                Object.keys(res.data).sort().forEach(key => {
+                    sortedPreferences[key] = res.data[key]
+                })
+                setPreferences(sortedPreferences);
+            }
+        }).catch((error) => {
+            setAlerts([...alerts, {id: Date.now(), variant: "danger", heading: "Unable to fetch preferences", content: error.content}])
+        })
+    }
+
+    useEffect(() => {
+        fetchCurrentValues()
+    }, []);
+
+    const handleSwitchClick = (key, newValue) => {
+        console.log(key +"has new value "+ newValue)
+    }
 
     return (
         <>
             <LogoBanner />
             <Col sm={"6"} className={"mx-auto"}>
                 <Form className={"mb-3"}>
-                    <Form.Switch
-                        onClick={toggleTheme}
-                        defaultChecked={getTheme() === "dark"}
-                        type="switch"
-                        id="darkmode"
-                        label="Darkmode"
-                    />
-                    <Form.Switch
-                        type="switch"
-                        id="image-accent-border"
-                        label="Show Image Accent Border"
-                    />
-                    <Form.Switch
-                        type="switch"
-                        id="title-quotes"
-                        label="Show Image Title in Quotes"
-                    />
-                    <InputGroup className={"mb-2"}>
-                        <InputGroup.Text>Locale</InputGroup.Text>
-                        <Form.Control type={"text"} placeholder={"en_EN"} />
-                    </InputGroup>
-                    <InputGroup className={"mb-2"}>
-                        <InputGroup.Text>Meta Description</InputGroup.Text>
-                        <Form.Control type={"text"} placeholder={"FrameGallery"} />
-                    </InputGroup>
-                    <InputGroup className={"mb-2"}>
-                        <InputGroup.Text>Meta Text</InputGroup.Text>
-                        <Form.Control type={"text"} placeholder={"The Photographers Content Management System"} />
-                    </InputGroup>
-                    <InputGroup className={"mb-2"}>
-                        <InputGroup.Text>Tracking Code</InputGroup.Text>
-                        <Form.Control as={"textarea"} rows={15} placeholder={"// Inner part of your tracking tag (<\script>...<\\script>)\n" +
-                            "for example:\n" +
-                            "var _paq = window._paq = window._paq || [];\n" +
-                            "  _paq.push(['trackPageView']);\n" +
-                            "  _paq.push(['enableLinkTracking']);\n" +
-                            "  (function() {\n" +
-                            "    var u=\"https://analytics.yourdomain.com/\";\n" +
-                            "    _paq.push(['setTrackerUrl', u+'matomo.php']);\n" +
-                            "    _paq.push(['setSiteId', '2']);\n" +
-                            "    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];\n" +
-                            "    g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);\n" +
-                            "  })();\n"} />
-                    </InputGroup>
-                    <InputGroup className={"mb-2"}>
-                        <InputGroup.Text>Favicon</InputGroup.Text>
-                        <input type={"file"} id={"file"} name={"file"}/>
-                    </InputGroup>
-                    <InputGroup className={"mb-2"}>
-                        <InputGroup.Text>Logo</InputGroup.Text>
-                        <input type={"file"} id={"file"} name={"file"}/>
-                    </InputGroup>
+                    {Object.entries(preferences).map(([key, value]) => {
+                        if (value === "true" || value === "false") {
+                            return <SwitchFormEntry key={key} name={key} defaultChecked={value === "true"} id={key} clickHandler={handleSwitchClick} />;
+                        } else if (value.length < 20) {
+                            return <TextFormEntry key={key} name={key} placeholder={value} value={value} />
+                        } else {
+                            return <TextAreaFormEntry key={key} name={key} placeholder={value} value={value} height={5}/>
+                        }
+                    })}
                 </Form>
             </Col>
 

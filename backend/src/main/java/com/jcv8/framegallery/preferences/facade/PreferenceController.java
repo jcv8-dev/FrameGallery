@@ -1,14 +1,13 @@
 package com.jcv8.framegallery.preferences.facade;
 
 import com.jcv8.framegallery.preferences.logic.PreferenceService;
-import com.jcv8.framegallery.user.facade.UserController;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -19,18 +18,15 @@ public class PreferenceController {
     @Autowired
     private PreferenceService preferenceService;
 
-    @GetMapping("/all")
+    @GetMapping("/fetch")
     public ResponseEntity<Map<String, String>> getAllPreferences() {
-        Map<String, String> preferences = preferenceService.getAllPreferences();
-        if (preferences.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        log.info("Request to fetch all preferences");
         return new ResponseEntity<>(preferenceService.getAllPreferences(), HttpStatus.OK);
     }
 
-    @GetMapping("/{key}")
+    @GetMapping("/fetch/{key}")
     public ResponseEntity<String> getPreferenceByKey(@PathVariable String key) {
-        log.info("Request to get preference by key " + key);
+        log.info("Request to fetch a preference by key " + key);
         String preference = preferenceService.getPreferenceByKey(key);
         if (preference.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -52,5 +48,14 @@ public class PreferenceController {
         return response;
     }
 
+    @PostMapping("/add")
+    public ResponseEntity<HttpStatus> addAllPreferences(@RequestBody HashMap<String, String> preferences){
+        log.info("Request to overwrite preferences");
+        if(preferences != null){
+            preferenceService.overwritePreferences(preferences);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
 
 }

@@ -42,8 +42,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/rest/v1/artist/info").permitAll())
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/rest/v1/image/all").permitAll())
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/rest/v1/image/**").permitAll())
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/docs/**").permitAll())
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/swagger-ui/**").permitAll())
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/rest/v1/preferences/fetch").permitAll())
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/rest/v1/preferences/fetch/**").permitAll())
+//                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/docs/**").permitAll())
+//                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/swagger-ui/**").permitAll())
+
 
 
 //                .authorizeHttpRequests(auth -> auth.requestMatchers(RegexRequestMatcher.regexMatcher("\\/api\\/rest\\/v1\\/image\\/[0-9a-fA-F-]{36}")).permitAll())

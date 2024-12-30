@@ -38,11 +38,11 @@ function App() {
                             <Route path="/image/:id" element={<ImageView />} />
                             <Route path="/admin/login" element={<LoginView />} />
                             <Route path="/admin/onboarding" element={<OnboardingView />} />
-                            <Route element={<AuthOutlet fallbackPath="/admin/login" />}>
+                            {/*<Route element={<AuthOutlet fallbackPath="/admin/login" />}>*/}
                                 <Route path="/admin" element={<AdminView />} />
                                 <Route path="/admin/preferences" element={<PreferenceView />} />
                                 <Route path="/admin/:id/edit" element={<ImageEditView />} />
-                            </Route>
+                            {/*</Route>*/}
                             <Route path="*" element={<Navigate to="/" />} />
                         </Routes>
                     </AuthProvider>
