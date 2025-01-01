@@ -19,6 +19,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -61,6 +62,7 @@ public class ImageController {
      * @return a list of Strings representing filenames
      */
     @GetMapping(value = "/all")
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Get all image filenames")
     @ApiResponses(
             value = {
@@ -82,6 +84,7 @@ public class ImageController {
 
     @PutMapping(value = "/add")
     @Operation(summary = "Add an image")
+    @PreAuthorize("authenticated")
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "Image added successfully"),
@@ -110,6 +113,7 @@ public class ImageController {
      */
     @GetMapping(value = "/{id:[0-9a-zA-Z-]{36}}")
     @Operation(summary = "Get image info by id")
+    @PreAuthorize("permitAll()")
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "Image info retrieved"),
@@ -129,6 +133,7 @@ public class ImageController {
 
     @PutMapping(value = "/{id:[0-9a-zA-Z-]{36}}/")
     @Operation(summary = "Set image info by id")
+    @PreAuthorize("authenticated")
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "Image info updated"),
@@ -148,6 +153,7 @@ public class ImageController {
 
     @GetMapping(value = "/{filename:[0-9a-zA-Z-]{36}\\.[a-zA-Z]{3,4}}")
     @Operation(summary = "Get image by filename")
+    @PreAuthorize("permitAll()")
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "Image retrieved"),
@@ -184,6 +190,7 @@ public class ImageController {
 
     @DeleteMapping(value = "/{id}")
     @Operation(summary = "Delete image by id")
+    @PreAuthorize("authenticated")
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "Image deleted"),
@@ -203,6 +210,7 @@ public class ImageController {
 
     @GetMapping(value = "/orphans")
     @Operation(summary = "Get orphan images")
+    @PreAuthorize("authenticated")
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "Orphan images retrieved")
@@ -215,6 +223,7 @@ public class ImageController {
 
     @PostMapping(value = "/orphans/index")
     @Operation(summary = "Reindex orphan images")
+    @PreAuthorize("authenticated")
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "Orphan images reindexed")
@@ -227,6 +236,7 @@ public class ImageController {
 
     @DeleteMapping(value = "/orphans")
     @Operation(summary = "Delete orphan images")
+    @PreAuthorize("authenticated")
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "Orphan images deleted"),

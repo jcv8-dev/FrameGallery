@@ -28,7 +28,7 @@ const PreferenceView = () => {
     };
 
     const fetchCurrentValues = () => {
-        axios.get("/api/rest/v1/preferences/fetch").then(async res => {
+        axios.get("/api/rest/v1/preferences/").then(async res => {
             if(res.status === 200){
                 setAlerts([...alerts, {id: Date.now(), variant: "success", heading: "Successfully fetched preferences"}])
                 //sort preferences by key alphabetically
@@ -39,7 +39,7 @@ const PreferenceView = () => {
                 setPreferences(sortedPreferences);
             }
         }).catch((error) => {
-            setAlerts([...alerts, {id: Date.now(), variant: "danger", heading: "Unable to fetch preferences", content: error.content}])
+            setAlerts([...alerts, {id: Date.now(), variant: "danger", heading: error.status, content: error.message}])
         })
     }
 
@@ -54,11 +54,11 @@ const PreferenceView = () => {
     return (
         <>
             <LogoBanner />
-            <Col sm={"6"} className={"mx-auto"}>
+            <Col md={"8"} className={"mx-auto"}>
                 <Form className={"mb-3"}>
                     {Object.entries(preferences).map(([key, value]) => {
                         if (value === "true" || value === "false") {
-                            return <SwitchFormEntry key={key} name={key} defaultChecked={value === "true"} id={key} clickHandler={handleSwitchClick} />;
+                            return <SwitchFormEntry key={key} name={key} currentState={value} id={key} clickHandler={handleSwitchClick} />;
                         } else if (value.length < 20) {
                             return <TextFormEntry key={key} name={key} placeholder={value} value={value} />
                         } else {
