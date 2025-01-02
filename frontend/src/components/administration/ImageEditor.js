@@ -7,11 +7,11 @@ import InputGroupText from "react-bootstrap/InputGroupText";
 const ImageEditor = (props) => {
 
     const [imageStatus, setImageStatus] = useState({})
-    const authHeader = useAuthHeader()
+    const authToken = useAuthHeader();
     const [newImageStatus, setNewImageStatus] = useState({});
 
     const loadCurrentImageStatus = () => {
-        axios.get(`/api/rest/v1/image/${props.id.split(".")[0]}`, {headers: authHeader})
+        axios.get(`/api/rest/v1/image/${props.id}`, {headers: {Authorization: authToken}})
             .then(res => {
                 setImageStatus(res.data)
                 setNewImageStatus(res.data)

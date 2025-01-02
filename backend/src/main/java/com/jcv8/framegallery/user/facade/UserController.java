@@ -48,7 +48,7 @@ public class UserController {
             }
     )
     public ResponseEntity<?> addNewUser(@RequestBody UserInfo userInfo) {
-        log.info("Request to register new User " + userInfo);
+        log.info("Request to register new User {}", userInfo);
         try{
             UserInfo newUser = service.addUser(userInfo);
             return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
@@ -66,7 +66,7 @@ public class UserController {
             }
     )
     public ResponseEntity<?> authenticateAndGetToken(@RequestBody AuthRequestDto authRequest) {
-        log.info("Login request from " + authRequest.getUsername());
+        log.info("Login request from {}", authRequest.getUsername());
         try{
             Authentication authentication = new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword());
             authenticationManager.authenticate(authentication);

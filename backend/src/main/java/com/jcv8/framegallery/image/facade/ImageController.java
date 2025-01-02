@@ -131,7 +131,7 @@ public class ImageController {
         }
     }
 
-    @PutMapping(value = "/{id:[0-9a-zA-Z-]{36}}/")
+    @PutMapping(value = "/{id:[0-9a-zA-Z-]{36}}")
     @Operation(summary = "Set image info by id")
     @PreAuthorize("authenticated")
     @ApiResponses(
@@ -143,13 +143,14 @@ public class ImageController {
     public ResponseEntity<?> setImageInfo(@PathVariable("id") UUID id, @RequestBody ImageInfoRequestDto info) {
         try{
             imageInfoService.setImageInfo(id, info);
-            log.info("Updating image with UUID" + id);
+            log.info("Updating image with UUID{}", id);
             return ResponseEntity.status(HttpStatus.OK).body("");
         } catch (FileNotFoundException e) {
             log.warn("Request for non-existing image with id " + id);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
+
 
     @GetMapping(value = "/{filename:[0-9a-zA-Z-]{36}\\.[a-zA-Z]{3,4}}")
     @Operation(summary = "Get image by filename")
@@ -177,7 +178,7 @@ public class ImageController {
                 contentType = "application/octet-stream";
             }
 
-            log.info("Request for " + filename);
+            log.info("Request for {}", filename);
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
                     .body(image);
@@ -188,7 +189,7 @@ public class ImageController {
         }
     }
 
-    @DeleteMapping(value = "/{id}")
+    @DeleteMapping(value = "/{id:[0-9a-zA-Z-]{36}}")
     @Operation(summary = "Delete image by id")
     @PreAuthorize("authenticated")
     @ApiResponses(
@@ -230,6 +231,7 @@ public class ImageController {
             }
     )
     public ResponseEntity<?> reIndexOrphans() {
+        log.info("Reindexing orphan images");
         imageInfoService.indexOrphans();
         return ResponseEntity.status(HttpStatus.OK).body(imageInfoService.getOrphans());
     }

@@ -1,6 +1,6 @@
 import './App.css';
 
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import {BrowserRouter as Router, Route, Routes, Navigate, useParams} from 'react-router-dom';
 import useIsAuthenticated from 'react-auth-kit/hooks/useIsAuthenticated'; // Hook to check authentication status
 
 import AdminView from "./pages/admin/AdminView";
@@ -16,6 +16,7 @@ import axios from "axios";
 import PreferenceView from "./pages/admin/PreferenceView";
 import AuthProvider from "react-auth-kit";
 import createStore from "react-auth-kit/createStore";
+import {cloneElement} from "react";
 
 axios.defaults.baseURL = 'http://localhost:8080';
 axios.defaults.headers.common['Authorization'] = 'AUTH TOKEN';
@@ -29,8 +30,9 @@ const store = createStore({
 });
 
 const ProtectedRoute = ({children}) => {
+    let {id} = useParams()
     const isAuthenticated = useIsAuthenticated();
-    return isAuthenticated ? children : <Navigate to="/admin/login" />;
+    return isAuthenticated ? cloneElement(children, { id: id }) : <Navigate to="/admin/login" />;
 }
 
 const App = () => {
@@ -65,7 +67,7 @@ const App = () => {
                             <Route
                                 path="/admin/:id/edit"
                                 element={
-                                    <ProtectedRoute>
+                                    <ProtectedRoute >
                                         <ImageEditView />
                                     </ProtectedRoute>
                                 }
