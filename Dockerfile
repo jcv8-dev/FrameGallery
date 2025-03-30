@@ -8,7 +8,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # Stage 2: Build the Spring Boot application
-FROM eclipse-temurin:20-jdk AS build-backend
+FROM eclipse-temurin:21-jdk AS build-backend
 
 WORKDIR /backend
 COPY backend/ .
@@ -17,7 +17,7 @@ RUN chmod +x gradlew
 RUN ./gradlew build -x test
 
 # Stage 3: Combine both applications and set up Nginx and Spring Boot
-FROM eclipse-temurin:20-jre
+FROM eclipse-temurin:21-jre
 
 # Install Nginx and Supervisor
 RUN apt-get update && apt-get install -y nginx supervisor && apt-get clean
