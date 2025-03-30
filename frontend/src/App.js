@@ -16,7 +16,8 @@ import axios from "axios";
 import PreferenceView from "./pages/admin/PreferenceView";
 import AuthProvider from "react-auth-kit";
 import createStore from "react-auth-kit/createStore";
-import {cloneElement} from "react";
+import {cloneElement, useEffect} from "react";
+import Cookies from 'js-cookie';
 
 axios.defaults.baseURL = 'http://localhost:8080';
 axios.defaults.headers.common['Authorization'] = 'AUTH TOKEN';
@@ -36,6 +37,26 @@ const ProtectedRoute = ({children}) => {
 }
 
 const App = () => {
+
+    useEffect(() => {
+        const fetchDarkModeStatus = () => {
+            axios.get('/api/rest/v1/preferences/darkmode').then(response => {
+                let darkModeEnabled = response.data
+                const expiryDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
+                Cookies.set('darkMode', darkModeEnabled, {expires: expiryDate});
+                document.documentElement.setAttribute('data-bs-theme', darkModeEnabled ? 'dark' : 'light');
+            }).catch(error => {
+                console.error('Error fetching dark mode status:', error);
+            })
+        };
+
+        const cachedDarkMode = Cookies.get('darkMode');
+        if (cachedDarkMode !== undefined) {
+            document.documentElement.setAttribute('data-bs-theme', cachedDarkMode === 'true' ? 'dark' : 'light');
+        } else {
+            fetchDarkModeStatus();
+        }
+    }, []);
 
     return (
         <>
