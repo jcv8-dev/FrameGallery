@@ -19,7 +19,7 @@ import createStore from "react-auth-kit/createStore";
 import {cloneElement, useEffect} from "react";
 import Cookies from 'js-cookie';
 
-axios.defaults.baseURL = 'http://localhost:8080';
+// axios.defaults.baseURL = 'http://localhost:8080';
 axios.defaults.headers.common['Authorization'] = 'AUTH TOKEN';
 axios.defaults.headers.post['Content-Type'] = 'application/json';
 
