@@ -29,7 +29,7 @@ const ImageGrid = (props) => {
             <ResponsiveMasonry columnsCountBreakPoints={{350: 1, 750: 2, 900: 3, 1100: 4}}>
                 <Masonry>
                     {imagePaths.map((image) => (
-                        <ImageGridImage  cursor={"pointer"} clickHandler={props.clickHandler} highlightUnpublished={props.highlightUnpublished} src={`/api/rest/v1/image/${image}`} id={image.split(".")[0]}/>
+                        <ImageGridImage key={image.split(".")[0]} cursor={"pointer"} clickHandler={props.clickHandler} highlightUnpublished={props.highlightUnpublished} src={`/api/rest/v1/image/${image}`} id={image.split(".")[0]}/>
                     ))}
                 </Masonry>
             </ResponsiveMasonry>
