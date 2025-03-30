@@ -10,14 +10,13 @@ import FullScreenImage from "../../components/images/FullScreenImage";
 import ImagePropertiesRow from "../../components/images/info/properties/ImagePropertiesRow";
 import HorizontalDivider from "../../components/static/HorizontalDivider";
 
-const ImageEditView = () => {
-    let { id } = useParams();
-    let authHeader = useAuthHeader()
+const ImageEditView = (props) => {
+    const authToken = useAuthHeader();
     const [imageTrigger, setImageTrigger] = useState(0)
 
     const setImageInfo = (event, newImageInfo) => {
         event.preventDefault()
-        axios.put(`/api/rest/v1/image/${id.split(".")[0]}/`, newImageInfo, {headers: authHeader})
+        axios.put(`/api/rest/v1/image/${props.id}`, newImageInfo, {headers: {Authorization: authToken}})
             .then(res => {
                 setImageTrigger(prevImageTrigger => prevImageTrigger + 1 )
             })
@@ -33,18 +32,18 @@ const ImageEditView = () => {
                 </Col>
             </Row>
             <Row className={"pb-3"} style={{}}>
-                <FullScreenImage id={id} cursor={""} />
+                <FullScreenImage id={props.id} cursor={""} />
             </Row>
             <Row>
                 <Col xs={"auto"} className={"mx-auto"}>
-                    <ImagePropertiesRow id={id}/>
+                    <ImagePropertiesRow id={props.id}/>
                 </Col>
             </Row>
             <Row className={"fg-w-limit-xl mx-auto"}>
                 <HorizontalDivider />
             </Row>
             <Row className={"pb-3 fg-w-limit-xl mx-auto"}>
-                <ImageEditor trigger={imageTrigger} submitHandler={setImageInfo} id={id}/>
+                <ImageEditor trigger={imageTrigger} submitHandler={setImageInfo} id={props.id}/>
             </Row>
 
         </>

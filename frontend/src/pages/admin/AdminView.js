@@ -6,12 +6,14 @@ import axios from "axios";
 import useAuthHeader from "react-auth-kit/hooks/useAuthHeader";
 import {useEffect, useState} from "react";
 import GenericModal from "../../components/forms/GenericModal";
+import TimedAlert from "../../components/alerts/TimedAlert";
 
 const AdminView = () => {
 
     const signOut = useSignOut()
     const authToken = useAuthHeader();
     const [gridTrigger, setGridTrigger] = useState(0)
+    const [alerts, setAlerts] = useState([])
 
     const logout = () => {
         signOut()
@@ -37,8 +39,8 @@ const AdminView = () => {
             console.debug("Rerender Grid (Indexed)")
             setGridTrigger(prevGridTrigger => prevGridTrigger + 1);
 
-        }).catch(err => {
-            console.error(err)
+        }).catch(error => {
+            setAlerts([...alerts, {id: Date.now(), variant: "danger", heading: error.status, content: error.message}])
         })
         return orphans
     }
@@ -67,7 +69,14 @@ const AdminView = () => {
                 console.log("Rerender Grid (Upload)")
                 setGridTrigger(prevGridTrigger => prevGridTrigger + 1);
             })
-            .catch()
+            .catch((error) => {
+                console.error(error)
+                setAlerts([...alerts, {id: Date.now(), variant: "danger", heading: error.status, content: error.message}])
+            })
+    }
+
+    function preferences() {
+        window.location = '/admin/preferences'
     }
 
     return(
@@ -84,7 +93,13 @@ const AdminView = () => {
                         </Form>
                     </GenericModal>
                 </Col>
-
+                <Col className={"mx-auto"}>
+                    <Button className={"w-100"} onClick={preferences}>Preferences</Button>
+                </Col>
+                <Col></Col>
+            </Row>
+            <Row>
+                <Col></Col>
                 <Col className={"mx-auto"}>
                     <Button className={"w-100"} onClick={logout}>Logout</Button>
                 </Col>
@@ -100,10 +115,12 @@ const AdminView = () => {
             </Row>
             <Row className={"pb-3"}>
                 <Col xs={4} className={"mx-auto "}>
-                    <Button className={"w-100"} onClick={triggerReIndex}>Index Orphans</Button>
+                    <Button className={"w-100"} onClick={triggerReIndex}>Reindex Files</Button>
                 </Col>
             </Row>
-
+            {alerts.map(alert => (
+                <TimedAlert key={alert.id} id={`save-alert-${alert.id}`} variant={alert.variant} heading={alert.heading} dismissible={true} content={alert.content} />
+            ))}
         </>
     )
 }

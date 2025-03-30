@@ -1,5 +1,6 @@
 package com.jcv8.framegallery.user.logic;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -19,10 +20,10 @@ import java.util.logging.Logger;
 
 import static org.antlr.v4.runtime.tree.xpath.XPath.findAll;
 
+@Slf4j
+
 @Service
 public class UserInfoService implements UserDetailsService {
-
-    private final Logger logger = Logger.getLogger(this.getClass().getName());
 
     @Autowired
     private UserInfoRepository repository;
@@ -43,7 +44,7 @@ public class UserInfoService implements UserDetailsService {
         if(hasOnboarded()){
             throw new IllegalStateException("Only one user can be added");
         }
-        logger.info("Adding user " + userInfo);
+        log.info("Adding user " + userInfo);
         if(repository.findByUsername(userInfo.getUsername()).isEmpty()) {
             userInfo.setPassword(encoder.encode(userInfo.getPassword()));
             return repository.save(userInfo);
