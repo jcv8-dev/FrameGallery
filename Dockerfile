@@ -1,5 +1,5 @@
 # Stage 1: Build the React application
-FROM node:18 AS build-frontend
+FROM node:23 AS build-frontend
 
 WORKDIR /frontend
 COPY frontend/package.json frontend/package-lock.json ./
