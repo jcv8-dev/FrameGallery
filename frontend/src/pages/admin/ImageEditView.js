@@ -9,16 +9,19 @@ import ImageEditor from "../../components/administration/ImageEditor";
 import FullScreenImage from "../../components/images/FullScreenImage";
 import ImagePropertiesRow from "../../components/images/info/properties/ImagePropertiesRow";
 import HorizontalDivider from "../../components/static/HorizontalDivider";
+import TimedAlert from "../../components/alerts/TimedAlert";
 
 const ImageEditView = (props) => {
     const authToken = useAuthHeader();
     const [imageTrigger, setImageTrigger] = useState(0)
+    const [alerts, setAlerts] = useState([])
 
     const setImageInfo = (event, newImageInfo) => {
         event.preventDefault()
         axios.put(`/api/rest/v1/image/${props.id}`, newImageInfo, {headers: {Authorization: authToken}})
             .then(res => {
                 setImageTrigger(prevImageTrigger => prevImageTrigger + 1 )
+                setAlerts([...alerts, {id: Date.now(), variant: "success", heading: "Successfully saved changes"}])
             })
             .catch(err => {console.error(err)})
     }
@@ -45,7 +48,9 @@ const ImageEditView = (props) => {
             <Row className={"pb-3 fg-w-limit-xl mx-auto"}>
                 <ImageEditor trigger={imageTrigger} submitHandler={setImageInfo} id={props.id}/>
             </Row>
-
+            {alerts.map(alert => (
+                <TimedAlert key={alert.id} id={`save-alert-${alert.id}`} variant={alert.variant} heading={alert.heading} dismissible={true} content={alert.content} />
+            ))}
         </>
     )
 }

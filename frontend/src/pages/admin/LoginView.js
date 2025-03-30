@@ -16,7 +16,11 @@ const LoginView = () => {
                     window.location = "/admin/onboarding"
                 }
             }).catch(error => {
-                console.error(error)
+               if(error.response.status === 403) {
+                   console.log("Onboarding is not allowed")
+               } else {
+                     console.error(error)
+               }
             }
         )
     }

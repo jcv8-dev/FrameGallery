@@ -7,9 +7,9 @@ services:
     container_name: fg
     ports:
 
-      - "8080:80" #change if needed
+      - "8081:80" #change if needed
     environment:
-      - CORS_ALLOWED_ORIGIN=http://localhost:8080 #replace with your domain
+      - CORS_ALLOWED_ORIGIN=http://localhost:8081 #replace with your domain
       - BACKEND_MAX_FILE_SIZE=50MB
       - NGINX_MAX_FILE_SIZE=50m
       - JWT_SECRET=kVDzP6f26Hlj73T^aiQ5vKP!NR!JjTkpo^VSTUdSszaXFUL8@z #replace with your own

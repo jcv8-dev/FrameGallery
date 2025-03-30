@@ -10,7 +10,11 @@ const LogoBanner = () => {
         await axios.get("/api/rest/v1/artist/info").then(res => {
             setArtistInfo(res.data);
         }).catch(err => {
-            console.error(err)
+            if(err.response.status === 404){
+                console.error("Artist not found, not yet onboarded")
+            } else {
+                console.error(err)
+            }
         })
     }
 
