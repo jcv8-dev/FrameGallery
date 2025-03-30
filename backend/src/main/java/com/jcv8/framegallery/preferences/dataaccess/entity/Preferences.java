@@ -24,7 +24,7 @@ public class Preferences {
     @Column(length = 8192)
     public static final Map<String, String> defaultPreferences = new HashMap<>(
             Map.of(
-                    "darkmode", "false",
+                    "darkmode", "true",
                     "locale", "en_EN",
                     "title-quotes", "true",
                     "accent-border", "true",

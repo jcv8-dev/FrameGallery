@@ -11,7 +11,6 @@ const OnboardingForm = () => {
             ...prevState,
             [name]: value
         }));
-        console.log(state)
     }
 
     let handleSubmit = event => {
