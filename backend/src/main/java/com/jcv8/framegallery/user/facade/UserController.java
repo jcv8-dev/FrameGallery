@@ -96,8 +96,10 @@ public class UserController {
     public ResponseEntity<?> onboarding() {
         log.info("Running Onboarding check");
         if(userInfoService.hasOnboarded()){
+            log.info("Has already onboarded");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("");
         } else {
+            log.info("Onboarding necessary");
             return ResponseEntity.status(HttpStatus.OK).body("");
         }
     }

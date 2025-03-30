@@ -19,6 +19,10 @@ public class PreferenceController {
     @Autowired
     private PreferenceService preferenceService;
 
+    /**
+     * Get all preferences
+     * @return a map of all preferences
+     */
     @GetMapping("/")
     @PreAuthorize("permitAll()")
     public ResponseEntity<Map<String, String>> getAllPreferences() {
@@ -26,6 +30,11 @@ public class PreferenceController {
         return new ResponseEntity<>(preferenceService.getAllPreferences(), HttpStatus.OK);
     }
 
+    /**
+     * Get a preference by key
+     * @param key the key of the preference
+     * @return the value of the preference
+     */
     @GetMapping("/{key}")
     @PreAuthorize("permitAll()")
     public ResponseEntity<String> getPreferenceByKey(@PathVariable String key) {
@@ -37,6 +46,12 @@ public class PreferenceController {
         return new ResponseEntity<>(preference, HttpStatus.OK);
     }
 
+    /**
+     * Add a preference
+     * @param key the key of the preference
+     * @param value the value of the preference
+     * @return a response entity with the status code
+     */
     @PostMapping("/{key}")
     @PreAuthorize("authenticated")
     public ResponseEntity<HttpStatus> addPreference(@PathVariable String key, @RequestParam String value) {
@@ -52,14 +67,27 @@ public class PreferenceController {
         return response;
     }
 
+    /**
+     * Overwrite all preferences
+     * @param preferences a map of preferences
+     * @return a response entity with the status code
+     */
     @PostMapping("/")
     @PreAuthorize("authenticated")
     public ResponseEntity<HttpStatus> addAllPreferences(@RequestBody HashMap<String, String> preferences){
-        log.info("Request to overwrite preferences");
+        log.info("Receiving new preferences");
         if(preferences != null){
             preferenceService.overwritePreferences(preferences);
             return new ResponseEntity<>(HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    @PostMapping("/reset")
+    @PreAuthorize("authenticated")
+    public ResponseEntity<HttpStatus> resetPreferences(){
+        log.info("Request to reset preferences");
+        preferenceService.resetPreferences();
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

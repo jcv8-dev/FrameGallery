@@ -69,4 +69,10 @@ public class PreferenceService {
         preferencesEntity.setPreferences(preferences);
         preferenceRepository.save(preferencesEntity);
     }
+
+    public void resetPreferences(){
+        Preferences preferencesEntity = preferenceRepository.findAll().get(0);
+        preferencesEntity.setPreferences(Preferences.defaultPreferences);
+        preferenceRepository.save(preferencesEntity);
+    }
 }
