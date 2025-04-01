@@ -49,6 +49,11 @@ public class StorageService implements StorageServiceApi {
             throw new StorageException(
                     "Cannot store file with double slashes in path " + path);
         }
+        if (pathString.contains("\\")) {
+            // This is a security check
+            throw new StorageException(
+                    "Cannot store file with backslashes in path " + path);
+        }
     }
 
     @Override
