@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -35,7 +36,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.csrf(AbstractHttpConfigurer::disable)
+        return http.csrf(Customizer.withDefaults())
 //                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/rest/v1/artist/auth/register").permitAll())
 //                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/rest/v1/artist/auth/login").permitAll())
 //                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/rest/v1/artist/auth/onboarding").permitAll())
