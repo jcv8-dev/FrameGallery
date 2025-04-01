@@ -37,12 +37,27 @@ public class StorageService implements StorageServiceApi {
         init();
     }
 
+    private void validatePath(Path path){
+        String pathString = path.toString();
+        if (pathString.contains("..")) {
+            // This is a security check
+            throw new StorageException(
+                    "Cannot store file with relative path outside current directory " + path);
+        }
+        if (pathString.contains("//")) {
+            // This is a security check
+            throw new StorageException(
+                    "Cannot store file with double slashes in path " + path);
+        }
+    }
+
     @Override
     public void store(Path path, MultipartFile file) {
         try {
             if (file.isEmpty()) {
                 throw new StorageException("Failed to store empty file.");
             }
+            validatePath(path);
             Path destinationFile = this.rootLocation.resolve(
                             path)
                     .normalize().toAbsolutePath();
