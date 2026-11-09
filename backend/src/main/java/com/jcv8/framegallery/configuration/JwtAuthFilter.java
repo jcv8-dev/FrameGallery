@@ -1,13 +1,11 @@
 package com.jcv8.framegallery.configuration;
 
-import com.jcv8.framegallery.user.dataaccess.entity.UserInfo;
-import com.jcv8.framegallery.user.dataaccess.entity.UserInfoDetails;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,7 +16,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.jcv8.framegallery.user.logic.UserInfoService;
 import java.io.IOException;
-import java.security.SignatureException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,11 +35,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            String cookieToken = extractCookie(request, "_auth");
+            String cookieType = extractCookie(request, "_auth_type");
+            if (cookieToken != null && "Bearer".equalsIgnoreCase(cookieType)) {
+                authHeader = "Bearer " + cookieToken;
+            }
+        }
         String token = null;
         String username = null;
-        if (authHeader != null && authHeader.startsWith("Bearer")) {
-            token = authHeader.substring(7);
-            username = jwtService.extractUsername(token);
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7).trim();
+            if (!token.isEmpty()) {
+                try {
+                    username = jwtService.extractUsername(token);
+                } catch (JwtException | IllegalArgumentException e) {
+                    logger.log(Level.FINE, "Ignoring invalid JWT", e);
+                }
+            }
         }
 
 
@@ -58,5 +70,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
+    }
+
+    private String extractCookie(HttpServletRequest request, String name) {
+        if (request.getCookies() == null) {
+            return null;
+        }
+        for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+            if (name.equals(cookie.getName())) {
+                return URLDecoder.decode(cookie.getValue(), StandardCharsets.UTF_8);
+            }
+        }
+        return null;
     }
 }

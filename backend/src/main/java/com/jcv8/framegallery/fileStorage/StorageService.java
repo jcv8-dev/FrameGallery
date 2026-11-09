@@ -62,6 +62,19 @@ public class StorageService implements StorageServiceApi {
     }
 
     @Override
+    public void store(Path path, byte[] contents) {
+        try {
+            Path destinationFile = this.rootLocation.resolve(path).normalize().toAbsolutePath();
+            if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
+                throw new StorageException("Cannot store file outside current directory.");
+            }
+            Files.write(destinationFile, contents);
+        } catch (IOException e) {
+            throw new StorageException("Failed to store file.", e);
+        }
+    }
+
+    @Override
     public Stream<Path> loadAll() {
         try {
             return Files.walk(this.rootLocation, 1)
@@ -76,7 +89,11 @@ public class StorageService implements StorageServiceApi {
     @Override
     public Resource loadAsResource(Path path) {
         try {
-            Resource resource = new UrlResource(path.toUri());
+            Path resolvedPath = rootLocation.resolve(path).normalize().toAbsolutePath();
+            if (!resolvedPath.startsWith(rootLocation.toAbsolutePath())) {
+                throw new StorageFileNotFoundException("Could not read file: " + path);
+            }
+            Resource resource = new UrlResource(resolvedPath.toUri());
             if (resource.exists() || resource.isReadable()) {
                 return resource;
             }
@@ -97,7 +114,11 @@ public class StorageService implements StorageServiceApi {
 
     @Override
     public void delete(Path path) throws IOException {
-        Files.delete(this.rootLocation.resolve(path));
+        Path resolvedPath = rootLocation.resolve(path).normalize().toAbsolutePath();
+        if (!resolvedPath.startsWith(rootLocation.toAbsolutePath())) {
+            throw new StorageException("Cannot delete file outside current directory.");
+        }
+        Files.delete(resolvedPath);
     }
 
     @Override
@@ -110,4 +131,3 @@ public class StorageService implements StorageServiceApi {
         }
     }
 }
-

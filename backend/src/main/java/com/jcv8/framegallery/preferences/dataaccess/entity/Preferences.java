@@ -23,15 +23,18 @@ public class Preferences {
     @ElementCollection
     @Column(length = 8192)
     public static final Map<String, String> defaultPreferences = new HashMap<>(
-            Map.of(
-                    "darkmode", "true",
-                    "locale", "en_EN",
-                    "title-quotes", "true",
-                    "accent-border", "true",
-                    "font-size-title", "1.75rem",
-                    "font-size-text", "1.2rem",
-                    "font-size-tags", "1rem",
-                    "tracking-code", """
+            Map.ofEntries(
+                    Map.entry("darkmode", "true"),
+                    Map.entry("show-artist-name", "true"),
+                    Map.entry("image-sort", "upload-date-desc"),
+                    Map.entry("locale", "en_EN"),
+                    Map.entry("title-quotes", "true"),
+                    Map.entry("accent-border", "true"),
+                    Map.entry("include-tracking-code", "false"),
+                    Map.entry("font-size-title", "1.75rem"),
+                    Map.entry("font-size-text", "1.2rem"),
+                    Map.entry("font-size-tags", "1rem"),
+                    Map.entry("tracking-code", """
                               var _paq = window._paq = window._paq || [];
                               _paq.push(['trackPageView']);
                               _paq.push(['enableLinkTracking']);
@@ -42,7 +45,7 @@ public class Preferences {
                                 var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
                                 g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
                               })();\
-                            """
+                            """)
             )
     );
     public Preferences(Map<String, String> preferences) {

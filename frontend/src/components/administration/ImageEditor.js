@@ -1,26 +1,13 @@
 import axios from "axios";
 import {useEffect, useState} from "react";
-import {Button, Col, Form, FormCheck, FormGroup, FormText, InputGroup, Row} from "react-bootstrap";
+import {Button, Col, Form, InputGroup, Row} from "react-bootstrap";
 import useAuthHeader from "react-auth-kit/hooks/useAuthHeader";
 import InputGroupText from "react-bootstrap/InputGroupText";
 
 const ImageEditor = (props) => {
 
-    const [imageStatus, setImageStatus] = useState({})
     const authToken = useAuthHeader();
     const [newImageStatus, setNewImageStatus] = useState({});
-
-    const loadCurrentImageStatus = () => {
-        axios.get(`/api/rest/v1/image/${props.id}`, {headers: {Authorization: authToken}})
-            .then(res => {
-                setImageStatus(res.data)
-                setNewImageStatus(res.data)
-                console.debug(newImageStatus)
-            })
-            .catch(err => {
-                console.error(err)
-            })
-    }
 
     const checkHandler = (event) => {
         setNewImageStatus({
@@ -39,9 +26,11 @@ const ImageEditor = (props) => {
     }
 
     useEffect(() => {
-        loadCurrentImageStatus()
+        axios.get(`/api/rest/v1/image/${props.id}`, {headers: {Authorization: authToken}})
+            .then(res => setNewImageStatus(res.data))
+            .catch(err => console.error(err))
         console.debug("ImageStatusBar rendered")
-    }, [props.trigger]);
+    }, [props.trigger, props.id, authToken]);
 
     const submitHandler = (event) => {
         console.debug("Submit")

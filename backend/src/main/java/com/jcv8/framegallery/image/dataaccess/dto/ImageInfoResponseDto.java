@@ -3,6 +3,7 @@ package com.jcv8.framegallery.image.dataaccess.dto;
 import com.jcv8.framegallery.image.dataaccess.entity.Image;
 import com.jcv8.framegallery.image.dataaccess.entity.ImageProperty.ImageProperty;
 import com.jcv8.framegallery.image.dataaccess.entity.Keyword;
+import com.jcv8.framegallery.image.dataaccess.entity.TranscodingStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,6 +22,7 @@ public class ImageInfoResponseDto {
     private List<ImageProperty<?>> imagePropertyList;
     private Boolean published;
     private String filename;
+    private TranscodingStatus transcodingStatus;
 
     public ImageInfoResponseDto(Image image) {
         this.id = image.getId();
@@ -30,6 +32,9 @@ public class ImageInfoResponseDto {
         this.imagePropertyList = image.getImageProperties();
         this.published = image.getPublished();
         this.filename = image.getPath().getFileName().toString();
+        this.transcodingStatus = image.getTranscodingStatus() == null
+                ? TranscodingStatus.COMPLETE
+                : image.getTranscodingStatus();
     }
 
 }

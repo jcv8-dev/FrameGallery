@@ -25,6 +25,8 @@ import static org.antlr.v4.runtime.tree.xpath.XPath.findAll;
 @Service
 public class UserInfoService implements UserDetailsService {
 
+    public static final int MIN_PASSWORD_LENGTH = 8;
+
     @Autowired
     private UserInfoRepository repository;
 
@@ -47,7 +49,10 @@ public class UserInfoService implements UserDetailsService {
         if(hasOnboarded()){
             throw new IllegalStateException("Only one user can be added");
         }
-        log.info("Adding user " + userInfo);
+        if (userInfo.getPassword() == null || userInfo.getPassword().length() < MIN_PASSWORD_LENGTH) {
+            throw new IllegalArgumentException("Password must be at least " + MIN_PASSWORD_LENGTH + " characters long");
+        }
+        log.info("Adding user {}", userInfo.getUsername());
         if(repository.findByUsername(userInfo.getUsername()).isEmpty()) {
             userInfo.setPassword(encoder.encode(userInfo.getPassword()));
             return repository.save(userInfo);
@@ -65,5 +70,18 @@ public class UserInfoService implements UserDetailsService {
         Map<String, String> artistInfo = new HashMap<>();
         artistInfo.put("name", artists.get(0).getName());
         return artistInfo;
+    }
+
+    public void updateArtistName(String name) throws IllegalAccessException {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Artist name cannot be empty");
+        }
+        List<UserInfo> artists = repository.findAll();
+        if (artists.isEmpty()) {
+            throw new IllegalAccessException("There isn't any info");
+        }
+        UserInfo artist = artists.get(0);
+        artist.setName(name.trim());
+        repository.save(artist);
     }
 }

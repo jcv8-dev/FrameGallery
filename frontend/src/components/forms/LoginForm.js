@@ -68,7 +68,9 @@ const LoginForm = () => {
                             Home
                         </Button>
                     </Form>
-                    <CustomAlert variant={"warning"}>{state.error !== undefined ? state.error.toString() : ""}</CustomAlert>
+                    <CustomAlert variant={"warning"} heading={"Sign-in failed"}>
+                        {state.error !== undefined ? state.error.toString() : ""}
+                    </CustomAlert>
                 </Col>
             </Row>
         </>

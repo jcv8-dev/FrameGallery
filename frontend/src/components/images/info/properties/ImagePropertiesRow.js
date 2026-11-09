@@ -10,28 +10,19 @@ const ImagePropertiesRow = (props) => {
     const authHeader = useAuthHeader()
 
 
-    const getImageInfo = () => {
-        axios.get(`/api/rest/v1/image/${props.id.split(".")[0]}`, {headers: authHeader})
-            .then(res => {
-                setImageProperties(res.data.imagePropertyList)
-                console.debug(res.data.imagePropertyList)
-            })
-            .catch(err => {
-                console.error(err)
-            })
-    }
-
     useEffect(() => {
         if(props.properties !== undefined){
             setImageProperties(props.properties)
             console.debug(props.properties)
         }
         if (props.id !== undefined) {
-            getImageInfo()
+            axios.get(`/api/rest/v1/image/${props.id.split(".")[0]}`, {headers: {Authorization: authHeader}})
+                .then(res => setImageProperties(res.data.imagePropertyList))
+                .catch(err => console.error(err))
         }
         console.debug("ImagePropertiesRow Rendered")
 
-    }, []);
+    }, [props.id, props.properties, authHeader]);
 
     if(imageProperties.length > 0){
         console.warn(imageProperties)
@@ -41,6 +32,7 @@ const ImagePropertiesRow = (props) => {
                     {imageProperties.map(
                         (property) => (
                             <ImageProperty
+                                key={`${property.name_}-${property.formattedValue_}`}
                                 name={property.name_}
                                 value={property.formattedValue_}
                             />)

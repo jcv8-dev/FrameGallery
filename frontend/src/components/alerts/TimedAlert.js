@@ -5,21 +5,26 @@ const TimedAlert = (props) => {
 
     const [visible, setVisible] = useState()
 
-    function onShowAlert(){
+    useEffect(() => {
         setVisible(true)
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
             setVisible(false)
         }, props._timeout || 5000)
-    }
-
-    useEffect(() => {
-        onShowAlert()
-    }, []);
+        return () => clearTimeout(timeout)
+    }, [props._timeout]);
 
     return(
-        <Alert id={props.id} show={visible} className={"my-3 mx-auto"} variant={props.variant} dismissible={props.dismissible} style={{maxWidth: "50vw", width: "auto"}} onClose={()=>{setVisible(false)}}>
-            <Alert.Heading>{props.heading}</Alert.Heading>
-            {props.content}
+        <Alert
+            id={props.id}
+            show={visible}
+            className={"fg-alert my-3 mx-auto"}
+            variant={props.variant || "info"}
+            dismissible={props.dismissible}
+            role={"alert"}
+            onClose={()=>{setVisible(false)}}
+        >
+            {props.heading && <Alert.Heading>{props.heading}</Alert.Heading>}
+            <div>{props.content}</div>
         </Alert>
     )
 }

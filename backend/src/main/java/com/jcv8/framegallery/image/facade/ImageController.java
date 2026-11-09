@@ -3,6 +3,7 @@ package com.jcv8.framegallery.image.facade;
 import com.jcv8.framegallery.configuration.JwtService;
 import com.jcv8.framegallery.image.dataaccess.dto.ImageInfoRequestDto;
 import com.jcv8.framegallery.image.dataaccess.dto.ImageInfoResponseDto;
+import com.jcv8.framegallery.image.dataaccess.dto.ImageTranscodingStatusDto;
 import com.jcv8.framegallery.image.dataaccess.entity.Image;
 import com.jcv8.framegallery.image.logic.ImageDownloadService;
 import com.jcv8.framegallery.image.logic.ImageInfoService;
@@ -27,8 +28,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -37,7 +41,6 @@ import java.util.logging.Logger;
 @Controller
 @RequestMapping(path = "/api/rest/v1/image")
 @Tag(name = "Image", description = "Endpoints for image management")
-@CrossOrigin(origins = "${cors.allowed.origin}")
 public class ImageController {
     
     @Autowired
@@ -55,6 +58,37 @@ public class ImageController {
     @Autowired
     private JwtService jwtService;
 
+    @org.springframework.beans.factory.annotation.Value("${cors.allowed.origin}")
+    private String allowedOrigin;
+
+    private boolean isAllowedImageRequest(HttpServletRequest request) {
+        String origin = request.getHeader("Origin");
+        if (origin != null && !origin.isBlank() && !allowedOrigin.equals(origin)) {
+            return false;
+        }
+
+        String referer = request.getHeader("Referer");
+        if (referer == null || referer.isBlank()) {
+            return true;
+        }
+
+        try {
+            URI refererUri = new URI(referer);
+            String refererOrigin = refererUri.getScheme() + "://" + refererUri.getAuthority();
+            return allowedOrigin.equals(refererOrigin);
+        } catch (URISyntaxException e) {
+            return false;
+        }
+    }
+
+    private ResponseEntity.BodyBuilder imageResponseHeaders() {
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "inline")
+                .header("Cache-Control", "no-store")
+                .header("X-Content-Type-Options", "nosniff")
+                .header("Cross-Origin-Resource-Policy", "same-site");
+    }
+
     /**
      * Endpoint for retrieving filenames of images
      * @param token optional, allows to see unpublished images
@@ -70,11 +104,15 @@ public class ImageController {
             }
     )
     public ResponseEntity<?> getAllImageFilename( @RequestHeader(name="Authorization", required = false) String token, @RequestParam(required = false) Boolean showAll) {
-        if(token != null){
-            String username = jwtService.extractUsername(token.split(" ")[1]);
-            if(showAll != null && showAll && userDetailsService.loadUserByUsername(username) != null){
-                log.info("Retrieving all image paths");
-                return ResponseEntity.status(HttpStatus.OK).body(imageInfoService.getAllImageFilename());
+        if (showAll != null && showAll && token != null && token.startsWith("Bearer ")) {
+            try {
+                String username = jwtService.extractUsername(token.substring(7));
+                if (userDetailsService.loadUserByUsername(username) != null) {
+                    log.info("Retrieving all image paths");
+                    return ResponseEntity.ok(imageInfoService.getAllImageFilename());
+                }
+            } catch (RuntimeException e) {
+                log.debug("Ignoring invalid optional authorization token", e);
             }
         }
 
@@ -104,6 +142,78 @@ public class ImageController {
             log.warn("Add Image Request with empty file");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
+
+    @PostMapping(value = "/bulk")
+    @Operation(summary = "Add multiple images")
+    @PreAuthorize("authenticated")
+    public ResponseEntity<?> addImages(@RequestParam("images") List<MultipartFile> images) {
+        try {
+            List<Image> savedImages = imageUploadService.saveImages(images);
+            log.info("Added {} images", savedImages.size());
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(savedImages.stream().map(Image::getId).toList());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            log.warn("Bulk image upload rejected: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IllegalStateException e) {
+            log.error("Bulk image upload failed", e);
+            return ResponseEntity.internalServerError().body(e.getMessage());
+        }
+    }
+
+    @GetMapping(value = "/{id:[0-9a-zA-Z-]{36}}/transcoding")
+    @Operation(summary = "Get image transcoding status")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<?> getTranscodingStatus(@PathVariable UUID id) {
+        try {
+            return ResponseEntity.ok(new ImageTranscodingStatusDto(imageInfoService.getImageInfoById(id)));
+        } catch (NoSuchFileException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping(value = "/transcoding")
+    @Operation(summary = "Get transcoding status for multiple images")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<List<ImageTranscodingStatusDto>> getTranscodingStatuses(
+            @RequestParam List<UUID> ids) {
+        List<ImageTranscodingStatusDto> statuses = ids.stream()
+                .map(imageInfoService::findImageInfoById)
+                .filter(java.util.Optional::isPresent)
+                .map(java.util.Optional::get)
+                .map(ImageTranscodingStatusDto::new)
+                .toList();
+        return ResponseEntity.ok(statuses);
+    }
+
+    @PostMapping(value = "/bulk/publish")
+    @Operation(summary = "Publish multiple images")
+    @PreAuthorize("authenticated")
+    public ResponseEntity<?> publishImages(@RequestBody List<UUID> ids) {
+        imageInfoService.publishImages(ids);
+        log.info("Published {} images", ids.size());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(value = "/bulk/delete")
+    @Operation(summary = "Delete multiple images")
+    @PreAuthorize("authenticated")
+    public ResponseEntity<?> deleteImages(@RequestBody List<UUID> ids) {
+        List<String> failures = new java.util.ArrayList<>();
+        for (UUID id : ids) {
+            try {
+                imageDownloadService.deleteImageById(id);
+            } catch (IOException | RuntimeException e) {
+                failures.add(id + ": " + e.getMessage());
+            }
+        }
+        if (!failures.isEmpty()) {
+            log.warn("Bulk image deletion completed with failures: {}", failures);
+            return ResponseEntity.status(HttpStatus.MULTI_STATUS).body(failures);
+        }
+        log.info("Deleted {} images", ids.size());
+        return ResponseEntity.ok().build();
     }
 
     /**
@@ -154,7 +264,7 @@ public class ImageController {
 
     @GetMapping(value = "/{filename:[0-9a-zA-Z-]{36}\\.[a-zA-Z]{3,4}}")
     @Operation(summary = "Get image by filename")
-    @PreAuthorize("permitAll()")
+    @PreAuthorize("authenticated")
     @ApiResponses(
             value = {
                     @ApiResponse(responseCode = "200", description = "Image retrieved"),
@@ -162,6 +272,9 @@ public class ImageController {
             }
     )
     public ResponseEntity<?> getImageById(@PathVariable("filename") String filename, HttpServletRequest request) {
+        if (!isAllowedImageRequest(request)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
         try{
             Resource image = imageDownloadService.getImageFileByFilename(filename);
 
@@ -179,13 +292,44 @@ public class ImageController {
             }
 
             log.info("Request for {}", filename);
-            return ResponseEntity.ok()
+            return imageResponseHeaders()
                     .contentType(MediaType.parseMediaType(contentType))
                     .body(image);
 
         } catch (NoSuchFileException e) {
             log.warn("Request for non-existing image " + filename);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+
+    @GetMapping(value = "/{id:[0-9a-zA-Z-]{36}}/resolution/{resolution:[0-9]+}")
+    @Operation(summary = "Get a WebP image at a predefined resolution")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<?> getImageAtResolution(@PathVariable UUID id,
+                                                   @PathVariable int resolution,
+                                                   HttpServletRequest request) {
+        if (!isAllowedImageRequest(request)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        try {
+            Resource image = imageDownloadService.getImageAtResolution(id, resolution);
+            log.info("Request for image {} at {}px", id, resolution);
+            String contentType = null;
+            try {
+                contentType = Files.probeContentType(image.getFile().toPath());
+            } catch (IOException e) {
+                log.warn("Could not determine content type for image {}", id);
+            }
+            return imageResponseHeaders()
+                    .contentType(contentType == null
+                            ? MediaType.APPLICATION_OCTET_STREAM
+                            : MediaType.parseMediaType(contentType))
+                    .body(image);
+        } catch (NoSuchFileException e) {
+            log.warn("Request for non-existing image {} at {}px", id, resolution);
+            return ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

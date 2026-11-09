@@ -18,9 +18,10 @@ import AuthProvider from "react-auth-kit";
 import createStore from "react-auth-kit/createStore";
 import {cloneElement, useEffect} from "react";
 import Cookies from 'js-cookie';
+import {apiUrl} from "./api";
+import {installButtonTracking, installTrackingCode} from "./tracking";
 
-// axios.defaults.baseURL = 'http://localhost:8080';
-axios.defaults.headers.common['Authorization'] = 'AUTH TOKEN';
+axios.defaults.baseURL = process.env.REACT_APP_API_URL || '';
 axios.defaults.headers.post['Content-Type'] = 'application/json';
 
 const store = createStore({
@@ -39,23 +40,34 @@ const ProtectedRoute = ({children}) => {
 const App = () => {
 
     useEffect(() => {
-        const fetchDarkModeStatus = () => {
-            axios.get('/api/rest/v1/preferences/darkmode').then(response => {
-                let darkModeEnabled = response.data
+        const favicon = document.querySelector('link[rel="icon"]');
+        if (favicon) {
+            favicon.href = `${apiUrl("/api/rest/v1/branding/logo")}?v=${Date.now()}`;
+        }
+
+        const fetchPreferences = () => {
+            axios.get('/api/rest/v1/preferences/').then(response => {
+                const darkModeEnabled = response.data.darkmode === "true";
+                installTrackingCode(response.data["tracking-code"], response.data["include-tracking-code"] === "true");
                 const expiryDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000); // 24 hours from now
                 Cookies.set('darkMode', darkModeEnabled, {expires: expiryDate});
                 document.documentElement.setAttribute('data-bs-theme', darkModeEnabled ? 'dark' : 'light');
+                document.documentElement.style.colorScheme = darkModeEnabled ? 'dark' : 'light';
             }).catch(error => {
-                console.error('Error fetching dark mode status:', error);
+                console.error('Error fetching preferences:', error);
             })
         };
+
+        const removeButtonTracking = installButtonTracking();
 
         const cachedDarkMode = Cookies.get('darkMode');
         if (cachedDarkMode !== undefined) {
             document.documentElement.setAttribute('data-bs-theme', cachedDarkMode === 'true' ? 'dark' : 'light');
+            fetchPreferences();
         } else {
-            fetchDarkModeStatus();
+            fetchPreferences();
         }
+        return removeButtonTracking;
     }, []);
 
     return (
@@ -96,10 +108,10 @@ const App = () => {
                             {/*404*/}
                             <Route path="*" element={<Navigate to="/" />} />
                         </Routes>
+                        <Footer />
                     </Router>
                 </AuthProvider>
                 </Container >
-            <Footer />
         </>
     );
 }

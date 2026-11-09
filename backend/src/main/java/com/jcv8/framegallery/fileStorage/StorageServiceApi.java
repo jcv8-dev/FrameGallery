@@ -16,6 +16,8 @@ public interface StorageServiceApi {
 
     void store(Path path, MultipartFile file);
 
+    void store(Path path, byte[] contents);
+
     Stream<Path> loadAll();
 
     Resource loadAsResource(Path path);

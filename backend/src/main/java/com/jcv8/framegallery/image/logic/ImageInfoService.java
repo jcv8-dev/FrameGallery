@@ -14,6 +14,7 @@ import com.jcv8.framegallery.image.dataaccess.entity.Keyword;
 import com.jcv8.framegallery.image.dataaccess.repository.ImagePropertyRepository;
 import com.jcv8.framegallery.image.dataaccess.repository.ImageRepository;
 import com.jcv8.framegallery.image.dataaccess.repository.KeywordRepository;
+import com.jcv8.framegallery.preferences.logic.PreferenceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,6 +48,12 @@ public class ImageInfoService {
     private StorageService storageService;
     @Autowired
     private KeywordRepository keywordRepository;
+
+    @Autowired
+    private PreferenceService preferenceService;
+
+    private static final DateTimeFormatter EXIF_DATE_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy:MM:dd HH:mm:ss");
 
     /**
      * Sets the published value of an image
@@ -75,6 +86,12 @@ public class ImageInfoService {
         } else {
             throw new FileNotFoundException("");
         }
+    }
+
+    public void publishImages(List<UUID> ids) {
+        List<Image> images = imageRepository.findAllById(ids);
+        images.forEach(image -> image.setPublished(true));
+        imageRepository.saveAll(images);
     }
 
 
@@ -135,7 +152,7 @@ public class ImageInfoService {
      * @return a list of filenames of all images in the database
      */
     public List<String> getAllImageFilename() {
-        List<Image> images = imageRepository.findAll();
+        List<Image> images = sortedImages(imageRepository.findAll());
         return images.stream().map(image -> image.getPath().getFileName().toString()).collect(Collectors.toList());
     }
 
@@ -143,8 +160,54 @@ public class ImageInfoService {
      * @return a list of filenames of all images in the database where published is set to true
      */
     public List<String> getAllPublishedImageFilename() {
-        List<Image> images = imageRepository.findAll();
+        List<Image> images = sortedImages(imageRepository.findAll());
         return images.stream().filter(Image::getPublished).map(image -> image.getPath().getFileName().toString()).collect(Collectors.toList());
+    }
+
+    private List<Image> sortedImages(List<Image> images) {
+        String sort = preferenceService.getPreferenceByKey("image-sort");
+        Comparator<Image> comparator;
+        switch (sort == null ? "upload-date-desc" : sort) {
+            case "capture-date-asc" -> comparator = Comparator.comparing(
+                    this::captureDate, Comparator.nullsLast(Comparator.naturalOrder()));
+            case "capture-date-desc" -> comparator = Comparator.comparing(
+                    this::captureDate, Comparator.nullsLast(Comparator.reverseOrder()));
+            case "upload-date-asc" -> comparator = Comparator.comparing(
+                    Image::getUploadDate, Comparator.nullsLast(Comparator.naturalOrder()));
+            case "upload-date-desc" -> comparator = Comparator.comparing(
+                    Image::getUploadDate, Comparator.nullsLast(Comparator.reverseOrder()));
+            default -> comparator = Comparator.comparing(
+                    Image::getUploadDate, Comparator.nullsLast(Comparator.reverseOrder()));
+        }
+        return images.stream()
+                .sorted(comparator.thenComparing(Image::getId))
+                .toList();
+    }
+
+    private LocalDateTime captureDate(Image image) {
+        if (image.getImageProperties() == null) {
+            return null;
+        }
+        return image.getImageProperties().stream()
+                .filter(ImageDatetime.class::isInstance)
+                .map(ImageDatetime.class::cast)
+                .map(ImageDatetime::getDateValue)
+                .map(this::parseCaptureDate)
+                .filter(java.util.Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private LocalDateTime parseCaptureDate(String value) {
+        try {
+            return LocalDateTime.parse(value, EXIF_DATE_FORMAT);
+        } catch (DateTimeParseException ignored) {
+            try {
+                return LocalDateTime.parse(value);
+            } catch (DateTimeParseException ignoredAgain) {
+                return null;
+            }
+        }
     }
 
 
@@ -152,6 +215,10 @@ public class ImageInfoService {
         Optional<Image> image = imageRepository.findById(id);
         if(image.isEmpty()) {throw new NoSuchFileException("File does not exist");}
         return image.get();
+    }
+
+    public Optional<Image> findImageInfoById(UUID id) {
+        return imageRepository.findById(id);
     }
 
     private void saveImagePropertyIfAbsent(ImageProperty<?> imageProperty){

@@ -7,6 +7,7 @@ import lombok.*;
 import com.jcv8.framegallery.image.dataaccess.entity.helper.PathConverter;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -34,6 +35,11 @@ public class Image {
 
     private Boolean published;
 
+    @Enumerated(EnumType.STRING)
+    private TranscodingStatus transcodingStatus;
+
+    private Instant uploadDate;
+
     public Image(Path path) {
         this.path = path;
 
@@ -47,6 +53,8 @@ public class Image {
 
     public Image() {
         this.id = UUID.randomUUID();
+        this.transcodingStatus = TranscodingStatus.QUEUED;
+        this.uploadDate = Instant.now();
     }
 
     private String UuidFromFilename(Path path){

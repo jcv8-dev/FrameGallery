@@ -19,6 +19,10 @@ public class ImageDatetime extends ImageProperty<String>{
         this.value_ = value;
     }
 
+    public String getDateValue() {
+        return value_;
+    }
+
     @Override
     String getName_() {
         return name_;

@@ -5,6 +5,7 @@ const SwitchFormEntry = (props) => {
     const switchAction = () => {
         props.clickHandler(props.id)
     }
+    const label = props.label || props.id;
 
     if(props.currentState === "false") {
         return (
@@ -14,7 +15,7 @@ const SwitchFormEntry = (props) => {
                     onChange={switchAction}
                     type="switch"
                     id={props.id}
-                    label={props.id}
+                    label={label}
                 />
             </>
         )
@@ -27,7 +28,7 @@ const SwitchFormEntry = (props) => {
                     checked
                     type="switch"
                     id={props.id}
-                    label={props.id}
+                    label={label}
                 />
             </>
         )

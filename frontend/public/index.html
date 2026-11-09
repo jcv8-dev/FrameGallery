@@ -13,6 +13,26 @@
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
     <title>FrameGallery</title>
+    <style>
+      html, body {
+        margin: 0;
+        background-color: #212529;
+        color: #dee2e6;
+      }
+
+      html[data-bs-theme="light"], html[data-bs-theme="light"] body {
+        background-color: #fff;
+        color: #212529;
+      }
+    </style>
+    <script>
+      (function () {
+        var match = document.cookie.match(/(?:^|; )darkMode=([^;]*)/);
+        var isDark = match ? decodeURIComponent(match[1]) === "true" : true;
+        document.documentElement.setAttribute("data-bs-theme", isDark ? "dark" : "light");
+        document.documentElement.style.colorScheme = isDark ? "dark" : "light";
+      }());
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

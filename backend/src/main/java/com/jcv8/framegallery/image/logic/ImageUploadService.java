@@ -7,19 +7,22 @@ import com.jcv8.framegallery.fileStorage.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.logging.Logger;
 
 /**
  * Handles saving and retrieving Images from the filesystem as well as their properties in the database
  * */
 @Service
 public class ImageUploadService {
+
+    public static final List<Integer> PREDEFINED_RESOLUTIONS = List.of(320, 640, 1280, 1920);
 
     private final Logger logger = Logger.getLogger(ImageUploadService.class.getName());
 
@@ -33,6 +36,9 @@ public class ImageUploadService {
     @Autowired
     private ImageInfoService imageInfoService;
 
+    @Autowired
+    private ImageTranscodingService imageTranscodingService;
+
     /**
      * Saves a given MultipartFile to the file system.
      * The location is determined by the storageService, the file name is generated from the files uuid and the original extension.
@@ -42,6 +48,9 @@ public class ImageUploadService {
      * @throws NullPointerException when the given file is null (thrown by the getOriginalFilename() call)
      */
     public Image saveImage(MultipartFile file) throws InvalidPathException, NullPointerException {
+        if (file == null || file.isEmpty()) {
+            throw new NullPointerException("Image file is empty");
+        }
         Image image = new Image();
         imageRepository.save(image);
         Path imagePath = generateUUIDPath(image.getId(), file.getOriginalFilename());
@@ -53,7 +62,20 @@ public class ImageUploadService {
             logger.warning(e.getMessage());
         }
         image.setPublished(false); // default: image not publicly visible
-        return imageRepository.save(image);
+        Image savedImage = imageRepository.save(image);
+        imageTranscodingService.transcode(savedImage);
+        return savedImage;
+    }
+
+    public List<Image> saveImages(List<MultipartFile> files) {
+        if (files == null || files.isEmpty()) {
+            throw new IllegalArgumentException("At least one image is required");
+        }
+        return files.stream().map(this::saveImage).toList();
+    }
+
+    public static String derivativeFilename(UUID id, int resolution) {
+        return id + "-" + resolution + ".webp";
     }
 
     /**

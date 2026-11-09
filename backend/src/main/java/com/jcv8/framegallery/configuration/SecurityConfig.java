@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -21,7 +20,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.jcv8.framegallery.user.logic.UserInfoService;
-import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -36,24 +34,11 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        return http.csrf(Customizer.withDefaults())
-//                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/rest/v1/artist/auth/register").permitAll())
-//                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/rest/v1/artist/auth/login").permitAll())
-//                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/rest/v1/artist/auth/onboarding").permitAll())
-//                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/rest/v1/artist/info").permitAll())
-//                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/rest/v1/image/all").permitAll())
-//                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/rest/v1/image/**").permitAll())
-//                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/rest/v1/preferences/fetch").permitAll())
-//                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/rest/v1/preferences/fetch/**").permitAll())
-//                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/docs/**").permitAll())
-//                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/swagger-ui/**").permitAll())
-
-
-
-//                .authorizeHttpRequests(auth -> auth.requestMatchers(RegexRequestMatcher.regexMatcher("\\/api\\/rest\\/v1\\/image\\/[0-9a-fA-F-]{36}")).permitAll())
-//                .authorizeHttpRequests(auth -> auth.requestMatchers(RegexRequestMatcher.regexMatcher("\\/api\\/rest\\/v1\\/image\\/[0-9a-fA-F-]{36}\\.[a-zA-Z]{3,4}")).permitAll())
-
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+        return http.csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/health/**").permitAll()
+                        .requestMatchers("/api/docs/**", "/v3/api-docs/**").authenticated()
+                        .anyRequest().permitAll())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();

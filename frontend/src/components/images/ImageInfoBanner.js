@@ -10,21 +10,13 @@ const ImageInfoBanner = (props) => {
     const authHeader = useAuthHeader()
 
     useEffect(() => {
-        getImageInfo()
-    }, []);
-
-    const getImageInfo = () => {
-        axios.get(`/api/rest/v1/image/${props.id.split(".")[0]}`, {headers: authHeader})
-            .then(res => {
-                setImageInfo(res.data)
-            })
-            .catch(err => {
-                console.error(err)
-            })
-    }
+        axios.get(`/api/rest/v1/image/${props.id.split(".")[0]}`, {headers: {Authorization: authHeader}})
+            .then(res => setImageInfo(res.data))
+            .catch(err => console.error(err))
+    }, [props.id, authHeader]);
 
     return(
-        <>
+        <div className={"fg-image-info"}>
             <Row>
                 <Col xs={"auto"} className={"mx-auto"}>
                     <ImagePropertiesRow id={props.id.split(".")[0]} />
@@ -33,11 +25,11 @@ const ImageInfoBanner = (props) => {
             <HorizontalDivider />
             <Row>
                 <Col>
-                    {imageInfo.title !== null && imageInfo.title !== undefined && imageInfo.title .length > 0 ?  <p className={"text-center fs-3 mb-2"}>"{imageInfo.title}"</p> : <></>}
+                    {imageInfo.title !== null && imageInfo.title !== undefined && imageInfo.title.length > 0 ?  <p className={"text-center fs-3 mb-2"}>"{imageInfo.title}"</p> : <></>}
                     {imageInfo.description !== null && imageInfo.description !== undefined && imageInfo.description.length > 0 ? <p className={"text-center fst-italic fs-5 mb-2"}>{imageInfo.description}</p> : <></>}
                 </Col>
             </Row>
-        </>
+        </div>
     )
 }
 

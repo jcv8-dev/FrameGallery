@@ -1,23 +1,34 @@
 package com.jcv8.framegallery.user.facade;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.extern.slf4j.Slf4j;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.jcv8.framegallery.configuration.JwtService;
 import com.jcv8.framegallery.user.dataaccess.dto.AuthRequestDto;
+import com.jcv8.framegallery.user.dataaccess.dto.ArtistInfoUpdateDto;
 import com.jcv8.framegallery.user.dataaccess.entity.UserInfo;
 import com.jcv8.framegallery.user.logic.UserInfoService;
-import java.util.HashMap;
-import java.util.Map;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 
@@ -53,7 +64,11 @@ public class UserController {
             UserInfo newUser = service.addUser(userInfo);
             return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
         } catch (IllegalStateException e) {
+            log.info("Illegal state exception: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("");
+        } catch (IllegalArgumentException e) {
+            log.info("Invalid registration request: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
@@ -118,6 +133,19 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.OK).body(userInfoService.getArtistInfo());
         } catch (IllegalAccessException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("");
+        }
+    }
+
+    @PutMapping("/info")
+    @PreAuthorize("authenticated")
+    public ResponseEntity<?> updateArtistInfo(@RequestBody ArtistInfoUpdateDto artistInfo) {
+        try {
+            userInfoService.updateArtistName(artistInfo.getName());
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IllegalAccessException e) {
+            return ResponseEntity.notFound().build();
         }
     }
 }

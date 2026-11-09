@@ -1,6 +1,7 @@
 package com.jcv8.framegallery.image.logic;
 
 import com.jcv8.framegallery.fileStorage.StorageService;
+import com.jcv8.framegallery.fileStorage.exception.StorageFileNotFoundException;
 import com.jcv8.framegallery.image.dataaccess.entity.Image;
 import com.jcv8.framegallery.image.dataaccess.repository.ImageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,9 +50,32 @@ public class ImageDownloadService {
     }
 
     public Resource getScaledFileByFilename(String filename, int maxWidth, int maxHeight) throws NoSuchFileException {
-        Resource imageResource = getImageFileByFilename(filename);
-        // TODO
-        return imageResource;
+        UUID id = Image.getUUIDFromPath(Path.of(filename));
+        return getImageAtResolution(id, Math.min(maxWidth, maxHeight));
+    }
+
+    public Resource getImageAtResolution(UUID id, int resolution) throws NoSuchFileException {
+        if (resolution <= 0) {
+            throw new IllegalArgumentException("Resolution must be positive");
+        }
+        Optional<Image> image = imageRepository.findById(id);
+        if (image.isEmpty()) {
+            throw new NoSuchFileException("File does not exist");
+        }
+
+        for (Integer availableResolution : ImageUploadService.PREDEFINED_RESOLUTIONS) {
+            if (availableResolution < resolution) {
+                continue;
+            }
+            try {
+                return storageService.loadAsResource(
+                        Path.of(ImageUploadService.derivativeFilename(id, availableResolution)));
+            } catch (StorageFileNotFoundException ignored) {
+                // Continue to the next larger derivative or the original image.
+            }
+        }
+
+        return storageService.loadAsResource(image.get().getPath());
     }
 
     /**
@@ -61,8 +85,23 @@ public class ImageDownloadService {
      */
     public void deleteImageById(UUID id) throws IOException {
         Optional<Image> image = imageRepository.findById(id);
-        if(image.isEmpty()){throw new NoSuchElementException("File does not exist");}
-        storageService.delete(image.get().getPath());
+        if (image.isEmpty()) {
+            return;
+        }
+        try {
+            storageService.delete(image.get().getPath());
+        } catch (NoSuchFileException ignored) {
+            // The database entry is still removed when the original file is already gone.
+        }
+        for (Integer resolution : ImageUploadService.PREDEFINED_RESOLUTIONS) {
+            Path derivative = Path.of(ImageUploadService.derivativeFilename(id, resolution));
+            try {
+                storageService.delete(derivative);
+            } catch (NoSuchFileException ignored) {
+                // Older uploads may not have generated derivatives.
+            }
+        }
+        imageRepository.deleteById(id);
     }
 
 

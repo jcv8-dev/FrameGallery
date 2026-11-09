@@ -19,16 +19,22 @@ public class PreferenceService {
     private PreferenceRepository preferenceRepository;
 
     @Transactional
-    public Map<String, String> getAllPreferences(){
+    public synchronized Map<String, String> getAllPreferences(){
         if(preferenceRepository.findAll().isEmpty()){
             log.info("Initializing Preferences with default values");
-            preferenceRepository.save(new Preferences(Preferences.defaultPreferences));
+            preferenceRepository.save(new Preferences(new HashMap<>(Preferences.defaultPreferences)));
         }
         addDefaults();
         return preferenceRepository.findAll().get(0).getPreferences();
     }
 
-    public String getPreferenceByKey(String key){
+    @Transactional
+    public synchronized String getPreferenceByKey(String key){
+        if(preferenceRepository.findAll().isEmpty()){
+            log.info("Initializing Preferences with default values");
+            preferenceRepository.save(new Preferences(new HashMap<>(Preferences.defaultPreferences)));
+        }
+        addDefaults();
         return preferenceRepository.findAll().get(0).getPreferences().get(key);
     }
 
@@ -50,29 +56,33 @@ public class PreferenceService {
 
     public void overwritePreferences(Map<String, String> preferences){
         Preferences preferencesEntity = preferenceRepository.findAll().get(0);
-        preferencesEntity.setPreferences(preferences);
+        preferencesEntity.setPreferences(new HashMap<>(preferences));
         preferenceRepository.save(preferencesEntity);
     }
 
     /**
      * Applies default values in case new defaults get added
      */
-    public void addDefaults(){
+    public synchronized void addDefaults(){
         Preferences preferencesEntity = preferenceRepository.findAll().get(0);
-        Map<String, String> preferences = preferencesEntity.getPreferences();
+        Map<String, String> preferences = new HashMap<>(preferencesEntity.getPreferences());
+        boolean changed = false;
         for (Map.Entry<String, String> entry : Preferences.defaultPreferences.entrySet()){
             if(!preferences.containsKey(entry.getKey())){
                 preferences.put(entry.getKey(), entry.getValue());
+                changed = true;
                 log.info("Added new default value for {} to preferences", entry.getKey());
             }
         }
-        preferencesEntity.setPreferences(preferences);
-        preferenceRepository.save(preferencesEntity);
+        if (changed) {
+            preferencesEntity.setPreferences(preferences);
+            preferenceRepository.save(preferencesEntity);
+        }
     }
 
     public void resetPreferences(){
         Preferences preferencesEntity = preferenceRepository.findAll().get(0);
-        preferencesEntity.setPreferences(Preferences.defaultPreferences);
+        preferencesEntity.setPreferences(new HashMap<>(Preferences.defaultPreferences));
         preferenceRepository.save(preferencesEntity);
     }
 }

@@ -1,10 +1,8 @@
-import {useParams} from "react-router-dom";
 import LogoBanner from "../../components/static/LogoBanner";
 import {Button, Col, Row} from "react-bootstrap";
-import ImageGridImage from "../../components/images/ImageGridImage";
 import axios from "axios";
 import useAuthHeader from "react-auth-kit/hooks/useAuthHeader";
-import {useEffect, useState} from "react";
+import {useState} from "react";
 import ImageEditor from "../../components/administration/ImageEditor";
 import FullScreenImage from "../../components/images/FullScreenImage";
 import ImagePropertiesRow from "../../components/images/info/properties/ImagePropertiesRow";

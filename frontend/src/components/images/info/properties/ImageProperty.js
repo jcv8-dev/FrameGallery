@@ -5,7 +5,7 @@ const ImageProperty = (props) => {
     if(props.name !== "" && props.name !== undefined && props.value !== "" && props.value !== undefined ){
         return(
             <>
-                <Col xs={"auto"} className={"pb-2 px-1"}>
+                <Col xs={12} sm={"auto"} className={"fg-image-property pb-2 px-1"}>
                     <InputGroup>
                         <InputGroup.Text>{props.name}</InputGroup.Text>
                         <InputGroup.Text>{props.value}</InputGroup.Text>

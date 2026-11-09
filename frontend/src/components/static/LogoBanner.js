@@ -1,16 +1,23 @@
 import {Col, Row} from "react-bootstrap";
 import axios from "axios";
 import {useEffect, useState} from "react";
+import {apiUrl} from "../../api";
 
 const LogoBanner = () => {
 
     const [artistInfo, setArtistInfo] = useState({})
+    const [showArtistName, setShowArtistName] = useState(true)
+    const logoUrl = `${apiUrl("/api/rest/v1/branding/logo")}?v=${Date.now()}`
 
     const fetchArtistInfo = async () => {
-        await axios.get("/api/rest/v1/artist/info").then(res => {
-            setArtistInfo(res.data);
+        await Promise.all([
+            axios.get("/api/rest/v1/artist/info"),
+            axios.get("/api/rest/v1/preferences/")
+        ]).then(([artistResponse, preferencesResponse]) => {
+            setArtistInfo(artistResponse.data);
+            setShowArtistName(preferencesResponse.data["show-artist-name"] !== "false");
         }).catch(err => {
-            if(err.response.status === 404){
+            if(err.response?.status === 404){
                 console.error("Artist not found, not yet onboarded")
             } else {
                 console.error(err)
@@ -26,11 +33,22 @@ const LogoBanner = () => {
     return(
         <>
             <Row className={"pt-3 pb-2"}>
-                <Col><h3 className={"mx-auto"} style={{width: "fit-content"}}>Logo</h3></Col>
+                <Col className={"text-center"}>
+                    <a href={"/"} aria-label={"Go to home"}>
+                        <img
+                            className={"fg-logo"}
+                            src={logoUrl}
+                            alt={"Site logo"}
+                            onError={(event) => { event.currentTarget.style.display = "none"; }}
+                        />
+                    </a>
+                </Col>
             </Row>
-            <Row className={"pt-2 pb-3"}>
-                <Col><h1 className={"mx-auto"} style={{width: "fit-content"}}>{artistInfo.name}</h1></Col>
-            </Row>
+            {showArtistName && (
+                <Row className={"pt-2 pb-3"}>
+                    <Col><h1 className={"mx-auto"} style={{width: "fit-content"}}>{artistInfo.name}</h1></Col>
+                </Row>
+            )}
         </>
     )
 }

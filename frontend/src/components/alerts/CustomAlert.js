@@ -2,9 +2,17 @@ import {Alert} from "react-bootstrap";
 
 const CustomAlert = (props) => {
 
-    if(props.children !== ""){
+    if(props.children){
         return(
-            <Alert id={"alert"} className={"my-3"} variant={props.variant} dismissible={true}>{props.children}</Alert>
+            <Alert
+                className={"fg-alert my-3"}
+                variant={props.variant || "info"}
+                dismissible={props.dismissible !== false}
+                role={"alert"}
+            >
+                {props.heading && <Alert.Heading>{props.heading}</Alert.Heading>}
+                <div>{props.children}</div>
+            </Alert>
         )
     } else {
         return (<></>)
